@@ -2,9 +2,13 @@
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
+    int length = 200;
+    int width = 200;
+    sf::RenderWindow window(sf::VideoMode(length, width), "SFML works!");
     sf::CircleShape shape(100.f);
     shape.setFillColor(sf::Color::Green);
+    float centerL = length / 2;
+    float centerW = width / 2;
 
     while (window.isOpen())
     {
