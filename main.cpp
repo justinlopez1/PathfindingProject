@@ -13,7 +13,7 @@ int main() {
     instructions.setFillColor(sf::Color::Blue);
     instructions.setPosition(BOARD_LEN, 0);
 
-    int boardLength = 25;  //change side length count here (its always a square)
+    int boardLength = 15;  //change side length count here (its always a square)
     Board board(boardLength);
 
 

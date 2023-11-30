@@ -1,3 +1,4 @@
 # PathfindingProject
-yay
+yay! \
 using SFML
+

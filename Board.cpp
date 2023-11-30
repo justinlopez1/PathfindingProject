@@ -25,7 +25,7 @@ void Board::Cell::draw(sf::RenderWindow &window) {
     else if (isWall)
         tile.setFillColor(sf::Color::Black);
     else
-        tile.setFillColor(sf::Color::White);
+        tile.setFillColor(sf::Color(255,255,255));
 
     window.draw(tile);
 }
@@ -48,6 +48,18 @@ Board::Board(int boardLength) {
             //std::cout << cell.x << " " << cell.y << std::endl;
         }
     }
+    for (int i = 1; i < boardLength; i++) {
+        sf::RectangleShape temp;
+        temp.setFillColor(sf::Color(115, 147, 179));
+        temp.setSize(sf::Vector2f(2, BOARD_LEN));
+        temp.setPosition(i*cellLength, 0);
+        borders.push_back(temp);
+        sf::RectangleShape temp2;
+        temp2.setFillColor(sf::Color(115, 147, 179));
+        temp2.setSize(sf::Vector2f(BOARD_LEN, 2));
+        temp2.setPosition(0, i*cellLength);
+        borders.push_back(temp2);
+    }
 }
 
 void Board::draw(sf::RenderWindow &window) {
@@ -55,6 +67,9 @@ void Board::draw(sf::RenderWindow &window) {
         for (auto& cell : row) {
             cell.draw(window);
         }
+    }
+    for (auto& line : borders) {
+        window.draw(line);
     }
 }
 
