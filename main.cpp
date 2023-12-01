@@ -4,6 +4,7 @@
 int main() {
 
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Pathfinding");
+    window.setFramerateLimit(80);
 
     std::string ini = "Mouse Instruction\nLeft: Place Wall\nRight: Erase Wall\nShift+Left: Place Start\nShift+Right: Place Finish\n\nKeyboard Instruction\nEnter: Reset Board";
     sf::Font font;
@@ -17,8 +18,9 @@ int main() {
     Board board(boardLength);
 
 
-
+    bool go = true;
     while (window.isOpen()) {
+
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
@@ -65,6 +67,11 @@ int main() {
                 int y = pos.y / (BOARD_LEN / boardLength);
                 board.rightClick(x, y);
             }
+        }
+
+
+        if (board.findStart() != nullptr and board.findFinish() != nullptr and !board.isFinished()) {
+            board.BFSloop();
         }
 
         window.clear(sf::Color(211, 211, 211));  //light grey

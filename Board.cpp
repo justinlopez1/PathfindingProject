@@ -11,6 +11,8 @@ Board::Cell::Cell(int x, int y, float sideLength) {
     isFinish = false;
     isStart = false;
     isWall = false;
+    visited = false;
+    isPath = false;
     //std::cout << x << " " << y << " " << sideLength << std::endl;
     tile.setPosition(x*sideLength, y*sideLength);
     tile.setSize(sf::Vector2f(sideLength, sideLength));
@@ -22,8 +24,13 @@ void Board::Cell::draw(sf::RenderWindow &window) {
         tile.setFillColor(sf::Color::Red);
     else if (isStart)
         tile.setFillColor(sf::Color::Green);
+    else if (isPath)
+        tile.setFillColor(sf::Color::Yellow);
     else if (isWall)
         tile.setFillColor(sf::Color::Black);
+    else if (visited)
+        tile.setFillColor(sf::Color::Blue);
+
     else
         tile.setFillColor(sf::Color(255,255,255));
 
@@ -35,6 +42,7 @@ void Board::Cell::draw(sf::RenderWindow &window) {
 
 Board::Board(int boardLength) {
     this->boardLength = boardLength;
+    finished = false;
     float cellLength = BOARD_LEN / (float)boardLength;
     for (int i = 0; i < boardLength; i++) {
         std::vector<Cell> temp;
@@ -60,6 +68,19 @@ Board::Board(int boardLength) {
         temp2.setPosition(0, i*cellLength);
         borders.push_back(temp2);
     }
+    for (int i = 0; i < boardLength; i++) {
+        for (int j = 0; j < boardLength; j++) {
+            if (cells[i][j].y != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i-1][j]);
+            if (cells[i][j].x != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i][j-1]);
+            if (cells[i][j].y != boardLength-1)
+                cells[i][j].nearbyCells.push_back(&cells[i+1][j]);
+            if (cells[i][j].x != boardLength-1)
+                cells[i][j].nearbyCells.push_back(&cells[i][j+1]);
+        }
+    }
+
 }
 
 void Board::draw(sf::RenderWindow &window) {
@@ -90,6 +111,7 @@ void Board::shiftLeftClick(int x, int y) {
     }
     cells[y][x].isStart = true;
     cells[y][x].isWall = false;
+    start = &cells[y][x];
 }
 
 void Board::shiftRightClick(int x, int y) {
@@ -100,16 +122,90 @@ void Board::shiftRightClick(int x, int y) {
     }
     cells[y][x].isFinish = true;
     cells[y][x].isWall = false;
+    finish = &cells[y][x];
 }
 
 void Board::reset() {
+    finished = false;
+    BFSstarted = false;
     for (auto& row : cells) {
         for (auto& cell : row) {
             cell.isWall = false;
             cell.isFinish = false;
             cell.isStart = false;
+            cell.visited = false;
+            cell.isPath = false;
         }
     }
+    while (!BFSq.empty())
+        BFSq.pop();
+    start = nullptr;
+    finish = nullptr;
 }
+
+void Board::startBFS() {
+
+}
+
+void Board::BFSloop() {
+    if (!BFSstarted) {
+        BFSstarted = true;
+        BFSq.push(start);
+        start->visited = true;
+    }
+
+    if (!BFSq.empty() and !finished) {
+        Cell* temp = BFSq.front();
+        for (auto& cell : temp->nearbyCells) {
+            if (!cell->visited and !cell->isWall) {
+                cell->prev = temp;
+                cell->visited = true;
+
+                if (cell->isFinish) {
+                    finished = true;
+                    createPath();
+                    break;
+                }
+
+                BFSq.push(cell);
+            }
+        }
+        BFSq.pop();
+    }
+}
+
+Board::Cell *Board::findStart() {
+    for (auto& row : cells) {
+        for (auto& cell : row) {
+            if (cell.isStart)
+                return &cell;
+        }
+    }
+    return nullptr;
+}
+
+Board::Cell *Board::findFinish() {
+    for (auto& row : cells) {
+        for (auto& cell : row) {
+            if (cell.isFinish)
+                return &cell;
+        }
+    }
+    return nullptr;
+}
+
+bool Board::isFinished() {
+    return finished;
+}
+
+void Board::createPath() {
+    Cell* temp = finish->prev;
+    while (!temp->isStart) {
+        temp->isPath = true;
+        temp = temp->prev;
+    }
+}
+
+
 
 
