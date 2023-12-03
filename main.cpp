@@ -32,6 +32,12 @@ void ProcessInputs(sf::RenderWindow &window, Board &board) {
             if (event.key.code == sf::Keyboard::R) {
                 board.resetPath();
             }
+            if (event.key.code == sf::Keyboard::Down) {
+                board.downArrow();
+            }
+            if (event.key.code == sf::Keyboard::Up) {
+                board.upArrow();
+            }
         }
     }
 }
@@ -49,8 +55,7 @@ int main() {
         ProcessInputs(window, board);
 
         if (board.findStart() != nullptr and board.findFinish() != nullptr and !board.isFinished()) {
-            board.GreedyBestFirstSearchLoop();
-            //board.BreadthFirstSearchloop();
+            board.checkAlgorithm();
         }
 
         window.clear(sf::Color(211, 211, 211));  //light grey

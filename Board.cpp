@@ -7,6 +7,7 @@
 Board::Cell::Cell(int x, int y, float sideLength) {
     this->x = x;
     this->y = y;
+    this->distance = std::numeric_limits<int>::max()
     isFinish = false;
     isStart = false;
     isWall = false;
@@ -123,7 +124,8 @@ Board::Board(int boardLength) {
                       "Shift+Right: Place Finish\n\n"
                       "Keyboard Instruction\n"
                       "Enter: Reset Board\n"
-                      "r: Rest Path";
+                      "r: Rest Path\n"
+                      "Down/Up Arrow: Change Algo\n";
 
     font.loadFromFile("font.ttf");
     instructions.setFont(font);
@@ -131,6 +133,12 @@ Board::Board(int boardLength) {
     instructions.setScale(.8, .8);
     instructions.setFillColor(sf::Color::Blue);
     instructions.setPosition(BOARD_LEN, 0);
+
+    algorithm.setFont(font);
+    algorithm.setString("Current Algorithm:\n  " + algorithms[cycle]);
+    algorithm.setScale(.8, .8);
+    algorithm.setFillColor(sf::Color::Blue);
+    algorithm.setPosition(BOARD_LEN, 270);
 
 }
 
@@ -144,6 +152,31 @@ void Board::draw(sf::RenderWindow &window) {
         window.draw(line);
     }
     window.draw(instructions);
+    window.draw(algorithm);
+}
+void Board::checkAlgorithm(){
+    if(algorithms[cycle] == "BFS")
+        BreadthFirstSearchloop();
+    if(algorithms[cycle] == "Dijkstra")
+        DijkstraSearchLoop();
+    if(algorithms[cycle] == "A*"){
+        //board.Astarloop();
+    }
+    if(algorithms[cycle] == "Greedy First Search")
+        GreedyBestFirstSearchLoop();
+}
+
+void Board::downArrow() {
+    cycle++;
+    if (cycle == 4)
+        cycle = 0;
+    algorithm.setString("Current Algorithm: \n  " + algorithms[cycle]);
+}
+void Board::upArrow() {
+     cycle--;
+    if (cycle == -1)
+        cycle = 3;
+    algorithm.setString("Current Algorithm: \n  " + algorithms[cycle]);
 }
 
 void Board::leftClick(sf::Vector2i pos) {
@@ -198,6 +231,7 @@ void Board::reset() {
     finished = false;
     BFSstarted = false;
     GBFSstarted = false;
+    DJKstarted = false;
     for (auto& row : cells) {
         for (auto& cell : row) {
             cell.isWall = false;
@@ -206,12 +240,15 @@ void Board::reset() {
             cell.visited = false;
             cell.isPath = false;
             cell.GBFSdistance = 0;
+            cell.distance = std::numeric_limits<int>::max();
         }
     }
     while (!BFSq.empty())
         BFSq.pop();
     while (!GBFSpq.empty())
         GBFSpq.pop();
+    while (!DJKpq.empty())
+        DJKpq.pop();
     start = nullptr;
     finish = nullptr;
 }
@@ -227,7 +264,7 @@ void Board::BreadthFirstSearchloop() {
         Cell* curr = BFSq.front();
         BFSq.pop();
         for (auto& cell : curr->nearbyCells) {
-            if (!cell->visited and !cell->isWall and !diagonallyWalled(cell, curr)) {
+            if (!cell->visited and !cell->isWall and !diagonallyWalled(curr, cell)) {
                 cell->prev = curr;
                 cell->visited = true;
 
@@ -274,6 +311,45 @@ void Board::createPath() {
         temp = temp->prev;
     }
 }
+void Board::DijkstraSearchLoop()
+{
+    if (!DJKstarted)
+    {
+        DJKstarted = true;
+        DJKpq.push(std::make_pair(0, start));
+        start->distance = 0;
+        start->visited = true;
+    }
+
+    if (!DJKpq.empty() and !finished)
+    {
+        Cell *curr = DJKpq.top().second;
+        curr->visited = true;
+        DJKpq.pop();
+        for (auto &cell : curr->nearbyCells)
+        {
+            if (!cell->visited and !cell->isWall and !diagonallyWalled(curr, cell))
+            {
+                float weight = 1;
+                if(abs(cell->x - curr->x) == abs(cell->y - curr->y)){
+                    weight = sqrt(2);
+                }
+                if (cell->distance > curr->distance + weight)
+                {
+                    cell->prev = curr;
+                    cell->distance = curr->distance + weight;
+                    DJKpq.push(std::make_pair(curr->distance + weight, cell));
+                }
+                if (cell->isFinish)
+                {
+                    finished = true;
+                    createPath();
+                    break;
+                }
+            }
+        }
+    }
+}
 
 void Board::GreedyBestFirstSearchLoop() {
     if (!GBFSstarted) {
@@ -314,18 +390,22 @@ bool Board::diagonallyWalled(Board::Cell *first, Board::Cell *second) {
 void Board::resetPath() {
     finished = false;
     BFSstarted = false;
+    DJKstarted= false;
     GBFSstarted = false;
     for (auto& row : cells) {
         for (auto& cell : row) {
             cell.isPath = false;
             cell.visited = false;
             cell.GBFSdistance = 0;
+            cell.distance = std::numeric_limits<int>::max();
         }
     }
     while (!BFSq.empty())
         BFSq.pop();
     while (!GBFSpq.empty())
         GBFSpq.pop();
+    while (!DJKpq.empty())
+        DJKpq.pop();
 }
 
 
