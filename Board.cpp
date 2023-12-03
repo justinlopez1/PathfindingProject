@@ -105,6 +105,14 @@ Board::Board(int boardLength) {
                 cells[i][j].nearbyCells.push_back(&cells[i+1][j]);
             if (cells[i][j].x != boardLength-1)
                 cells[i][j].nearbyCells.push_back(&cells[i][j+1]);
+            if (cells[i][j].y != 0 and cells[i][j].x != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i-1][j-1]);
+            if (cells[i][j].y != 0 and cells[i][j].x != boardLength-1)
+                cells[i][j].nearbyCells.push_back(&cells[i-1][j+1]);
+            if (cells[i][j].y != boardLength-1 and cells[i][j].x != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i+1][j-1]);
+            if (cells[i][j].x != boardLength-1 and cells[i][j].y != boardLength-1)
+                cells[i][j].nearbyCells.push_back(&cells[i+1][j+1]);
         }
     }
 
@@ -114,7 +122,8 @@ Board::Board(int boardLength) {
                       "Shift+Left: Place Start\n"
                       "Shift+Right: Place Finish\n\n"
                       "Keyboard Instruction\n"
-                      "Enter: Reset Board";
+                      "Enter: Reset Board\n"
+                      "r: Rest Path";
 
     font.loadFromFile("font.ttf");
     instructions.setFont(font);
@@ -218,7 +227,7 @@ void Board::BreadthFirstSearchloop() {
         Cell* curr = BFSq.front();
         BFSq.pop();
         for (auto& cell : curr->nearbyCells) {
-            if (!cell->visited and !cell->isWall) {
+            if (!cell->visited and !cell->isWall and !diagonallyWalled(cell, curr)) {
                 cell->prev = curr;
                 cell->visited = true;
 
@@ -279,7 +288,7 @@ void Board::GreedyBestFirstSearchLoop() {
         GBFSpq.pop();
 
         for (auto& cell : curr->nearbyCells) {
-            if (!cell->visited and !cell->isWall) {
+            if (!cell->visited and !cell->isWall and !diagonallyWalled(curr, cell)) {
                 cell->setGBFSDistance(finish);
                 cell->prev = curr;
                 cell->visited = true;
@@ -294,6 +303,29 @@ void Board::GreedyBestFirstSearchLoop() {
             }
         }
     }
+}
+
+bool Board::diagonallyWalled(Board::Cell *first, Board::Cell *second) {
+    if (!cells[first->y][second->x].isWall or !cells[second->y][first->x].isWall)
+        return false;
+    return true;
+}
+
+void Board::resetPath() {
+    finished = false;
+    BFSstarted = false;
+    GBFSstarted = false;
+    for (auto& row : cells) {
+        for (auto& cell : row) {
+            cell.isPath = false;
+            cell.visited = false;
+            cell.GBFSdistance = 0;
+        }
+    }
+    while (!BFSq.empty())
+        BFSq.pop();
+    while (!GBFSpq.empty())
+        GBFSpq.pop();
 }
 
 

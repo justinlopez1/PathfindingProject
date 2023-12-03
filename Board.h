@@ -65,10 +65,12 @@ public:
     void shiftLeftClick(sf::Event &event);
     void shiftRightClick(sf::Event &event);
     void reset();
+    void resetPath();
     Cell* findStart();
     Cell* findFinish();
     bool isFinished();
     void createPath();
+    bool diagonallyWalled(Cell* first, Cell* second);
 
     void BreadthFirstSearchloop();
 
