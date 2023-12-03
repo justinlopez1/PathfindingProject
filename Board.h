@@ -17,6 +17,7 @@
 
 class Board {
     struct Cell {
+        sf::Text t;
         sf::RectangleShape tile;
         bool isStart;
         bool isFinish;
@@ -25,40 +26,53 @@ class Board {
         bool isPath;
         int x;
         int y;
-        float sideLength;
         std::vector<Cell*> nearbyCells;
         Cell* prev = nullptr;
 
+        int GBFSdistance = 0;
+        void setGBFSDistance(Cell* finish);
+
         Cell(int x, int y, float sideLength);
         void draw(sf::RenderWindow &window);
-
+        void draw(sf::RenderWindow &window, sf::Font* font);
+    };
+    struct CompareGBFSdistance {
+        bool operator()(Cell* lhs, Cell* rhs);
     };
 
     std::vector<std::vector<Cell>> cells;
     std::vector<sf::RectangleShape> borders;
+
     int boardLength;
+    float cellSideLength;
     bool finished;
     Cell* start;
     Cell* finish;
+    sf::Font font;
+    sf::Text instructions;
 
     std::queue<Cell*> BFSq;
     bool BFSstarted = false;
 
+    std::priority_queue<Cell*, std::vector<Cell*>, CompareGBFSdistance> GBFSpq;
+    bool GBFSstarted = false;
+
 public:
     Board(int boardLength);
     void draw(sf::RenderWindow &window);
-    void leftClick(int x, int y);
-    void rightClick(int x, int y);
-    void shiftLeftClick(int x, int y);
-    void shiftRightClick(int x, int y);
+    void leftClick(sf::Vector2i pos);
+    void rightClick(sf::Vector2i pos);
+    void shiftLeftClick(sf::Event &event);
+    void shiftRightClick(sf::Event &event);
     void reset();
     Cell* findStart();
     Cell* findFinish();
     bool isFinished();
     void createPath();
 
-    void BFSloop();
-    void startBFS();
+    void BreadthFirstSearchloop();
+
+    void GreedyBestFirstSearchLoop();
 };
 
 
