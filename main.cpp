@@ -45,9 +45,9 @@ void ProcessInputs(sf::RenderWindow &window, Board &board) {
 int main() {
 
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Pathfinding");
-    window.setFramerateLimit(30);
+    window.setFramerateLimit(1000);
 
-    int boardLength = 20;  //change side length count here (its always a square)
+    int boardLength = 100;  //change side length count here (its always a square)
     Board board(boardLength);
 
     while (window.isOpen()) {

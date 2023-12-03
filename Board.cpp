@@ -7,6 +7,7 @@
 Board::Cell::Cell(int x, int y, float sideLength) {
     this->x = x;
     this->y = y;
+    this->distance = std::numeric_limits<int>::max()
     isFinish = false;
     isStart = false;
     isWall = false;
@@ -396,7 +397,7 @@ void Board::resetPath() {
             cell.isPath = false;
             cell.visited = false;
             cell.GBFSdistance = 0;
-            cell.distance = 0;
+            cell.distance = std::numeric_limits<int>::max();
         }
     }
     while (!BFSq.empty())
