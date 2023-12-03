@@ -29,6 +29,9 @@ void ProcessInputs(sf::RenderWindow &window, Board &board) {
             if (event.key.code == sf::Keyboard::Enter) {
                 board.reset();
             }
+            if (event.key.code == sf::Keyboard::R) {
+                board.resetPath();
+            }
             if (event.key.code == sf::Keyboard::Down) {
                 board.downArrow();
             }

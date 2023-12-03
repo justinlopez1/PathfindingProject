@@ -11,6 +11,7 @@
 #include <queue>
 #include <limits>
 #include <string>
+#include <cmath>
 #include <SFML/Graphics.hpp>
 
 #define WINDOW_WIDTH 1300
@@ -26,7 +27,7 @@ class Board {
         bool isWall;
         bool visited;
         bool isPath;
-        int distance;
+        float distance;
         int x;
         int y;
         std::vector<Cell*> nearbyCells;
@@ -78,11 +79,13 @@ public:
     void shiftLeftClick(sf::Event &event);
     void shiftRightClick(sf::Event &event);
     void reset();
+    void resetPath();
     Cell* findStart();
     Cell* findFinish();
     bool isFinished();
     void createPath();
     void checkAlgorithm();
+    bool diagonallyWalled(Cell* first, Cell* second);
     void BreadthFirstSearchloop();
 
     void GreedyBestFirstSearchLoop();
