@@ -9,6 +9,8 @@
 #include <vector>
 #include <iostream>
 #include <queue>
+#include <limits>
+#include <string>
 #include <SFML/Graphics.hpp>
 
 #define WINDOW_WIDTH 1300
@@ -24,6 +26,7 @@ class Board {
         bool isWall;
         bool visited;
         bool isPath;
+        int distance;
         int x;
         int y;
         std::vector<Cell*> nearbyCells;
@@ -45,20 +48,30 @@ class Board {
 
     int boardLength;
     float cellSideLength;
+    int cycle = 0;
     bool finished;
     Cell* start;
     Cell* finish;
     sf::Font font;
     sf::Text instructions;
+    sf::Text algorithm;
+    std::string algorithms[4] = {"BFS", "Dijkstra", "A*", "Greedy First Search"};
+
 
     std::queue<Cell*> BFSq;
     bool BFSstarted = false;
 
+    std::priority_queue<std::pair<int, Cell *>, std::vector<std::pair<int, Cell *>>, std::greater<std::pair<int, Cell *>>> DJKpq;
+    bool DJKstarted = false;
+
     std::priority_queue<Cell*, std::vector<Cell*>, CompareGBFSdistance> GBFSpq;
     bool GBFSstarted = false;
 
+
 public:
     Board(int boardLength);
+    void downArrow();
+    void upArrow();
     void draw(sf::RenderWindow &window);
     void leftClick(sf::Vector2i pos);
     void rightClick(sf::Vector2i pos);
@@ -69,10 +82,12 @@ public:
     Cell* findFinish();
     bool isFinished();
     void createPath();
-
+    void checkAlgorithm();
     void BreadthFirstSearchloop();
 
     void GreedyBestFirstSearchLoop();
+
+    void DijkstraSearchLoop();
 };
 
 

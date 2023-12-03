@@ -114,7 +114,9 @@ Board::Board(int boardLength) {
                       "Shift+Left: Place Start\n"
                       "Shift+Right: Place Finish\n\n"
                       "Keyboard Instruction\n"
-                      "Enter: Reset Board";
+                      "Enter: Reset Board\n"
+                      "Down/Up Arrow: Change Algo\n"
+                      "Hold S: Run Algo.";
 
     font.loadFromFile("font.ttf");
     instructions.setFont(font);
@@ -122,6 +124,12 @@ Board::Board(int boardLength) {
     instructions.setScale(.8, .8);
     instructions.setFillColor(sf::Color::Blue);
     instructions.setPosition(BOARD_LEN, 0);
+
+    algorithm.setFont(font);
+    algorithm.setString("Current Algorithm:\n  " + algorithms[cycle]);
+    algorithm.setScale(.8, .8);
+    algorithm.setFillColor(sf::Color::Blue);
+    algorithm.setPosition(BOARD_LEN, 250);
 
 }
 
@@ -135,6 +143,31 @@ void Board::draw(sf::RenderWindow &window) {
         window.draw(line);
     }
     window.draw(instructions);
+    window.draw(algorithm);
+}
+void Board::checkAlgorithm(){
+    if(algorithms[cycle] == "BFS")
+        BreadthFirstSearchloop();
+    if(algorithms[cycle] == "Dijkstra")
+        DijkstraSearchLoop();
+    if(algorithms[cycle] == "A*"){
+        //board.Astarloop();
+    }
+    if(algorithms[cycle] == "Greedy First Search")
+        GreedyBestFirstSearchLoop();
+}
+
+void Board::downArrow() {
+    cycle++;
+    if (cycle == 4)
+        cycle = 0;
+    algorithm.setString("Current Algorithm: \n  " + algorithms[cycle]);
+}
+void Board::upArrow() {
+     cycle--;
+    if (cycle == -1)
+        cycle = 3;
+    algorithm.setString("Current Algorithm: \n  " + algorithms[cycle]);
 }
 
 void Board::leftClick(sf::Vector2i pos) {
@@ -189,6 +222,7 @@ void Board::reset() {
     finished = false;
     BFSstarted = false;
     GBFSstarted = false;
+    DJKstarted = false;
     for (auto& row : cells) {
         for (auto& cell : row) {
             cell.isWall = false;
@@ -197,12 +231,15 @@ void Board::reset() {
             cell.visited = false;
             cell.isPath = false;
             cell.GBFSdistance = 0;
+            cell.distance = std::numeric_limits<int>::max();
         }
     }
     while (!BFSq.empty())
         BFSq.pop();
     while (!GBFSpq.empty())
         GBFSpq.pop();
+    while (!DJKpq.empty())
+        DJKpq.pop();
     start = nullptr;
     finish = nullptr;
 }
@@ -265,6 +302,42 @@ void Board::createPath() {
         temp = temp->prev;
     }
 }
+void Board::DijkstraSearchLoop()
+{
+    if (!DJKstarted)
+    {
+        DJKstarted = true;
+        DJKpq.push(std::make_pair(0, start));
+        start->distance = 0;
+        start->visited = true;
+    }
+
+    if (!DJKpq.empty() and !finished)
+    {
+        Cell *temp = DJKpq.top().second;
+        temp->visited = true;
+        DJKpq.pop();
+        for (auto &cell : temp->nearbyCells)
+        {
+            if (!cell->visited and !cell->isWall)
+            {
+                int weight = 1;
+                cell->prev = temp;
+                if (cell->isFinish)
+                {
+                    finished = true;
+                    createPath();
+                    break;
+                }
+                if (cell->distance > temp->distance + weight)
+                {
+                    cell->distance = temp->distance + weight;
+                    DJKpq.push(std::make_pair(temp->distance + weight, cell));
+                }
+            }
+        }
+    }
+}
 
 void Board::GreedyBestFirstSearchLoop() {
     if (!GBFSstarted) {
@@ -301,3 +374,4 @@ bool Board::CompareGBFSdistance::operator()(Board::Cell *lhs, Board::Cell *rhs) 
     //std::cout << lhs->GBFSdistance << "<" << rhs->GBFSdistance << std::endl;
     return lhs->GBFSdistance > rhs->GBFSdistance;
 }
+
