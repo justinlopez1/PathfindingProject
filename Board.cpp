@@ -103,20 +103,20 @@ Board::Board(int boardLength) {
         for (int j = 0; j < boardLength; j++) {
             if (cells[i][j].y != 0)
                 cells[i][j].nearbyCells.push_back(&cells[i-1][j]);
-            if (cells[i][j].x != 0)
-                cells[i][j].nearbyCells.push_back(&cells[i][j-1]);
-            if (cells[i][j].y != boardLength-1)
-                cells[i][j].nearbyCells.push_back(&cells[i+1][j]);
-            if (cells[i][j].x != boardLength-1)
-                cells[i][j].nearbyCells.push_back(&cells[i][j+1]);
-            if (cells[i][j].y != 0 and cells[i][j].x != 0)
-                cells[i][j].nearbyCells.push_back(&cells[i-1][j-1]);
             if (cells[i][j].y != 0 and cells[i][j].x != boardLength-1)
                 cells[i][j].nearbyCells.push_back(&cells[i-1][j+1]);
-            if (cells[i][j].y != boardLength-1 and cells[i][j].x != 0)
-                cells[i][j].nearbyCells.push_back(&cells[i+1][j-1]);
+            if (cells[i][j].x != boardLength-1)
+                cells[i][j].nearbyCells.push_back(&cells[i][j+1]);
             if (cells[i][j].x != boardLength-1 and cells[i][j].y != boardLength-1)
                 cells[i][j].nearbyCells.push_back(&cells[i+1][j+1]);
+            if (cells[i][j].y != boardLength-1)
+                cells[i][j].nearbyCells.push_back(&cells[i+1][j]);
+            if (cells[i][j].y != boardLength-1 and cells[i][j].x != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i+1][j-1]);
+            if (cells[i][j].x != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i][j-1]);
+            if (cells[i][j].y != 0 and cells[i][j].x != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i-1][j-1]);
         }
     }
 
