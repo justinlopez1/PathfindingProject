@@ -33,7 +33,7 @@ class Board {
         std::vector<Cell*> nearbyCells;
         Cell* prev = nullptr;
 
-        int GBFSdistance = 0;
+        float GBFSdistance = 0;
         void setGBFSDistance(Cell* finish);
 
         float dijkstraDistance;
@@ -60,6 +60,7 @@ class Board {
     int dimensionCycle = 3;
     int framerateCycle = 0;
     bool finished;
+    bool solving = false;
     Cell* start;
     Cell* finish;
     sf::Font font;
@@ -77,12 +78,13 @@ class Board {
     int totalChecks;
     float pathLength;
     sf::Time timeTaken;
+    sf::Clock timer;
 
 
     std::queue<Cell*> BFSq;
     bool BFSstarted = false;
 
-    std::priority_queue<std::pair<int, Cell *>, std::vector<std::pair<int, Cell *>>, std::greater<std::pair<int, Cell *>>> DJKpq;
+    std::priority_queue<std::pair<float, Cell *>, std::vector<std::pair<float, Cell *>>, std::greater<std::pair<float, Cell *>>> DJKpq;
     bool DJKstarted = false;
 
     std::priority_queue<Cell*, std::vector<Cell*>, CompareGBFSdistance> GBFSpq;

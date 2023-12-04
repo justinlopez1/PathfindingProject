@@ -55,11 +55,11 @@ void Board::Cell::draw(sf::RenderWindow &window, sf::Font* font) {
     window.draw(tile);
 
     if (GBFSdistance > 0) {
-        t.setString(std::to_string(GBFSdistance + dijkstraDistance));
+        t.setString(std::to_string(dijkstraDistance));
         t.setPosition(tile.getPosition());
         t.setFont(*font);
         t.setFillColor(sf::Color::Green);
-        t.setScale(.75, .75);
+        t.setScale(.5, .5);
         window.draw(t);
     }
 }
@@ -68,6 +68,7 @@ void Board::Cell::setGBFSDistance(Board::Cell *finish) {
     int hDist = abs(finish->x - x);
     int vDist = abs(finish->y - y);
     GBFSdistance = std::max(hDist, vDist) + (std::min(hDist, vDist)*sqrt(2));
+    GBFSdistance = hDist + vDist;
 }
 
 
@@ -205,7 +206,10 @@ void Board::draw(sf::RenderWindow &window) {
     window.draw(pathLengthtext);
 }
 void Board::checkAlgorithm(){
-
+    if (!solving) {
+        timer.restart();
+        solving = true;
+    }
     if(algorithms[cycle] == "BFS")
         BreadthFirstSearchloop();
     if(algorithms[cycle] == "Dijkstra")
@@ -215,6 +219,10 @@ void Board::checkAlgorithm(){
     }
     if(algorithms[cycle] == "Greedy Best First Search")
         GreedyBestFirstSearchLoop();
+    if (finished and solving) {
+        solving = false;
+        timeTaken = timer.getElapsedTime();
+    }
 }
 
 void Board::downArrow() {
@@ -549,26 +557,37 @@ void Board::resetPath() {
 void Board::AStarLoop() {
     if (!ASstarted)
     {
+        for (auto& row : cells) {
+            for (auto& cell : row) {
+                cell.setGBFSDistance(finish);
+            }
+        }
+
         ASstarted = true;
-        ASpq.push(start);
         start->dijkstraDistance = 0;
         start->setGBFSDistance(finish);
         start->visited = true;
         start->aStarVisited = true;
+        ASpq.push(start);
     }
     if (!ASpq.empty() and !finished)
     {
         Cell *curr = ASpq.top();
         ASpq.pop();
+
+        //while(curr->aStarVisited) {
+         //   curr = ASpq.top();
+         //   ASpq.pop();
+        //}
+
         curr->aStarVisited = true;
         for (auto &cell : curr->nearbyCells)
         {
             if (!cell->aStarVisited and !cell->isWall and !diagonallyWalled(curr, cell))
             {
-                cell->visited = true;
-                cell->setGBFSDistance(finish);
+
                 float weight = 1;
-                if(abs(cell->x - curr->x) == abs(cell->y - curr->y)){
+                if(isDiagonal(cell, curr)){
                     weight = sqrt(2);
                 }
                 if (cell->dijkstraDistance > curr->dijkstraDistance + weight)
@@ -576,7 +595,12 @@ void Board::AStarLoop() {
                     cell->prev = curr;
                     cell->dijkstraDistance = curr->dijkstraDistance + weight;
                     totalChecks++;
-                    ASpq.emplace(cell);
+
+                    if (!cell->visited) {
+                        cell->visited = true;
+                        ASpq.emplace(cell);
+                    }
+
                 }
 
                 if (cell->isFinish)
