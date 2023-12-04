@@ -125,7 +125,8 @@ Board::Board() {
                       "r: Reset Path\n"
                       "Down/Up Arrow: Change Algo\n"
                       "k/l: Change Board Size\n"
-                      "g: generate random maze\n";
+                      "o/p: Change Framerate\n"
+                      "g: Generate Random Maze\n";
 
     font.loadFromFile("resources/font.ttf");
     instructions.setFont(font);
@@ -138,17 +139,28 @@ Board::Board() {
     algorithm.setString("Current Algorithm:\n  " + algorithms[cycle]);
     algorithm.setScale(.8, .8);
     algorithm.setFillColor(sf::Color::Blue);
-    algorithm.setPosition(BOARD_LEN, BOARD_LEN-200);
+    algorithm.setPosition(BOARD_LEN, BOARD_LEN-100);
 
     mazeSize.setFont(font);
     mazeSize.setString("Current Size: " + std::to_string(dimensions[dimensionCycle]) + "x" + std::to_string(dimensions[dimensionCycle]));
     mazeSize.setScale(.8, .8);
     mazeSize.setFillColor(sf::Color::Blue);
-    mazeSize.setPosition(BOARD_LEN, BOARD_LEN-100);
+    mazeSize.setPosition(BOARD_LEN, BOARD_LEN-50);
+
+    framerate.setFont(font);
+    framerate.setString(std::to_string(framerates[framerateCycle])+" fps");
+    framerate.setScale(.8, .8);
+    framerate.setFillColor(sf::Color::Blue);
+    framerate.setPosition(BOARD_LEN, BOARD_LEN-125);
 
 }
 
 void Board::draw(sf::RenderWindow &window) {
+    if (findStart() != nullptr and findFinish() != nullptr and !isFinished())
+        window.setFramerateLimit(framerates[framerateCycle]);
+    else
+        window.setFramerateLimit(100000);
+
     for (auto& row : cells) {
         for (auto& cell : row) {
             cell.draw(window);
@@ -160,8 +172,10 @@ void Board::draw(sf::RenderWindow &window) {
     window.draw(instructions);
     window.draw(algorithm);
     window.draw(mazeSize);
+    window.draw(framerate);
 }
 void Board::checkAlgorithm(){
+
     if(algorithms[cycle] == "BFS")
         BreadthFirstSearchloop();
     if(algorithms[cycle] == "Dijkstra")
@@ -577,4 +591,22 @@ void Board::readMazeFile(){
         x = 0;
     }
     std::cout << "done" << std::endl;
+}
+
+void Board::increaseFramerate() {
+    framerateCycle++;
+    if (framerateCycle > 8)
+        framerateCycle = 0;
+    framerate.setString(std::to_string(framerates[framerateCycle])+" fps");
+    if (framerateCycle == 8)
+        framerate.setString("Unlimited fps");
+}
+
+void Board::decreaseFramerate() {
+    framerateCycle--;
+    if (framerateCycle < 0)
+        framerateCycle = 8;
+    framerate.setString(std::to_string(framerates[framerateCycle])+" fps");
+    if (framerateCycle == 8)
+        framerate.setString("Unlimited fps");
 }

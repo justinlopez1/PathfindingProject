@@ -58,6 +58,7 @@ class Board {
     float cellSideLength;
     int cycle = 0;
     int dimensionCycle = 3;
+    int framerateCycle = 0;
     bool finished;
     Cell* start;
     Cell* finish;
@@ -65,8 +66,10 @@ class Board {
     sf::Text instructions;
     sf::Text algorithm;
     sf::Text mazeSize;
+    sf::Text framerate;
     std::string algorithms[4] = {"BFS", "Dijkstra", "A*", "Greedy Best First Search"};
     int dimensions[11] = {7 ,9, 11, 13 ,15, 17, 19, 21, 23, 25, 49};
+    int framerates[9] = {20, 30, 40, 50, 60, 80, 100, 200, 1000};
 
 
 
@@ -84,6 +87,7 @@ class Board {
 
 public:
     Board();
+
     void downArrow();
     void upArrow();
     void draw(sf::RenderWindow &window);
@@ -92,29 +96,26 @@ public:
     void shiftLeftClick(sf::Event &event);
     void shiftRightClick(sf::Event &event);
     void checkAlgorithm();
+    void changeDimensionsK();
+    void changeDimensionsL();
+    void increaseFramerate();
+    void decreaseFramerate();
 
     void reset();
     void resetPath();
+    void resizeBoard();
 
     Cell* findStart();
     Cell* findFinish();
     bool isFinished();
     void createPath();
     bool diagonallyWalled(Cell* first, Cell* second);
-
-    void BreadthFirstSearchloop();
-
-    void GreedyBestFirstSearchLoop();
-
-    void DijkstraSearchLoop();
-
-    void AStarLoop();
-
     void readMazeFile();
 
-    void changeDimensionsK();
-    void changeDimensionsL();
-    void resizeBoard();
+    void BreadthFirstSearchloop();
+    void GreedyBestFirstSearchLoop();
+    void DijkstraSearchLoop();
+    void AStarLoop();
 };
 
 

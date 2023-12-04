@@ -38,14 +38,20 @@ void ProcessInputs(sf::RenderWindow &window, Board &board) {
             if (event.key.code == sf::Keyboard::Up) {
                 board.upArrow();
             }
-            if(event.key.code == sf::Keyboard::G){
+            if (event.key.code == sf::Keyboard::G){
                 board.readMazeFile();
             }
-            if(event.key.code == sf::Keyboard::K){
+            if (event.key.code == sf::Keyboard::K){
                 board.changeDimensionsK();
             }
-            if(event.key.code == sf::Keyboard::L){
+            if (event.key.code == sf::Keyboard::L){
                 board.changeDimensionsL();
+            }
+            if (event.key.code == sf::Keyboard::P) {
+                board.increaseFramerate();
+            }
+            if (event.key.code == sf::Keyboard::O) {
+                board.decreaseFramerate();
             }
         }
     }
