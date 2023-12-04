@@ -50,7 +50,7 @@ void ProcessInputs(sf::RenderWindow &window, Board &board) {
         }
     }
 }
-
+//
 int main() {
 
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Pathfinding");

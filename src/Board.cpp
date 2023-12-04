@@ -3,7 +3,7 @@
 //
 
 #include "Board.h"
-
+//
 Board::Cell::Cell(int x, int y, float sideLength) {
     this->x = x;
     this->y = y;
