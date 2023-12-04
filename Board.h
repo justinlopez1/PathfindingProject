@@ -13,6 +13,7 @@
 #include <string>
 #include <cmath>
 #include <SFML/Graphics.hpp>
+#include <fstream>
 
 #define WINDOW_WIDTH 1300
 #define WINDOW_HEIGHT 900
@@ -35,7 +36,7 @@ class Board {
         int GBFSdistance = 0;
         void setGBFSDistance(Cell* finish);
 
-        float disktraDistance;
+        float dijkstraDistance;
 
         bool aStarVisited = false;
 
@@ -56,13 +57,17 @@ class Board {
     int boardLength;
     float cellSideLength;
     int cycle = 0;
+    int dimensionCycle = 3;
     bool finished;
     Cell* start;
     Cell* finish;
     sf::Font font;
     sf::Text instructions;
     sf::Text algorithm;
+    sf::Text mazeSize;
     std::string algorithms[4] = {"BFS", "Dijkstra", "A*", "Greedy Best First Search"};
+    int dimensions[8] = {7 ,9, 11, 13 ,15, 17, 19, 21};
+
 
 
     std::queue<Cell*> BFSq;
@@ -104,6 +109,12 @@ public:
     void DijkstraSearchLoop();
 
     void AStarLoop();
+
+    void readMazeFile();
+
+    void changeDimensionsK();
+    void changeDimensionsL();
+    void resizeBoard();
 };
 
 
