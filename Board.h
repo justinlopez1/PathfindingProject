@@ -27,7 +27,6 @@ class Board {
         bool isWall;
         bool visited;
         bool isPath;
-        float distance;
         int x;
         int y;
         std::vector<Cell*> nearbyCells;
@@ -36,11 +35,18 @@ class Board {
         int GBFSdistance = 0;
         void setGBFSDistance(Cell* finish);
 
+        float disktraDistance;
+
+        bool aStarVisited = false;
+
         Cell(int x, int y, float sideLength);
         void draw(sf::RenderWindow &window);
         void draw(sf::RenderWindow &window, sf::Font* font);
     };
     struct CompareGBFSdistance {
+        bool operator()(Cell* lhs, Cell* rhs);
+    };
+    struct CompareASdistance {
         bool operator()(Cell* lhs, Cell* rhs);
     };
 
@@ -56,7 +62,7 @@ class Board {
     sf::Font font;
     sf::Text instructions;
     sf::Text algorithm;
-    std::string algorithms[4] = {"BFS", "Dijkstra", "A*", "Greedy First Search"};
+    std::string algorithms[4] = {"BFS", "Dijkstra", "A*", "Greedy Best First Search"};
 
 
     std::queue<Cell*> BFSq;
@@ -68,6 +74,8 @@ class Board {
     std::priority_queue<Cell*, std::vector<Cell*>, CompareGBFSdistance> GBFSpq;
     bool GBFSstarted = false;
 
+    std::priority_queue<Cell*, std::vector<Cell*>, CompareASdistance> ASpq;
+    bool ASstarted = false;
 
 public:
     Board(int boardLength);
@@ -78,20 +86,27 @@ public:
     void rightClick(sf::Vector2i pos);
     void shiftLeftClick(sf::Event &event);
     void shiftRightClick(sf::Event &event);
+    void checkAlgorithm();
+
     void reset();
     void resetPath();
+
     Cell* findStart();
     Cell* findFinish();
     bool isFinished();
     void createPath();
-    void checkAlgorithm();
     bool diagonallyWalled(Cell* first, Cell* second);
+
     void BreadthFirstSearchloop();
 
     void GreedyBestFirstSearchLoop();
 
     void DijkstraSearchLoop();
+
+    void AStarLoop();
 };
+
+
 
 
 #endif //PATHFINDINGPROJECT_BOARD_H

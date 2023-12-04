@@ -7,7 +7,7 @@
 Board::Cell::Cell(int x, int y, float sideLength) {
     this->x = x;
     this->y = y;
-    this->distance = std::numeric_limits<int>::max()
+    this->disktraDistance = std::numeric_limits<int>::max();
     isFinish = false;
     isStart = false;
     isWall = false;
@@ -55,10 +55,11 @@ void Board::Cell::draw(sf::RenderWindow &window, sf::Font* font) {
     window.draw(tile);
 
     if (GBFSdistance > 0) {
-        t.setString(std::to_string(GBFSdistance));
+        t.setString(std::to_string(GBFSdistance + disktraDistance));
         t.setPosition(tile.getPosition());
         t.setFont(*font);
         t.setFillColor(sf::Color::Green);
+        t.setScale(.75, .75);
         window.draw(t);
     }
 
@@ -68,7 +69,9 @@ void Board::Cell::draw(sf::RenderWindow &window, sf::Font* font) {
 }
 
 void Board::Cell::setGBFSDistance(Board::Cell *finish) {
-    GBFSdistance = abs(finish->x - x) + abs(finish->y - y);
+    int hDist = abs(finish->x - x);
+    int vDist = abs(finish->y - y);
+    GBFSdistance = std::max(hDist, vDist) + (std::min(hDist, vDist)*sqrt(2));
 }
 
 
@@ -145,7 +148,7 @@ Board::Board(int boardLength) {
 void Board::draw(sf::RenderWindow &window) {
     for (auto& row : cells) {
         for (auto& cell : row) {
-            cell.draw(window, &font);
+            cell.draw(window);
         }
     }
     for (auto& line : borders) {
@@ -160,9 +163,9 @@ void Board::checkAlgorithm(){
     if(algorithms[cycle] == "Dijkstra")
         DijkstraSearchLoop();
     if(algorithms[cycle] == "A*"){
-        //board.Astarloop();
+        AStarLoop();
     }
-    if(algorithms[cycle] == "Greedy First Search")
+    if(algorithms[cycle] == "Greedy Best First Search")
         GreedyBestFirstSearchLoop();
 }
 
@@ -232,6 +235,7 @@ void Board::reset() {
     BFSstarted = false;
     GBFSstarted = false;
     DJKstarted = false;
+    ASstarted = false;
     for (auto& row : cells) {
         for (auto& cell : row) {
             cell.isWall = false;
@@ -240,7 +244,9 @@ void Board::reset() {
             cell.visited = false;
             cell.isPath = false;
             cell.GBFSdistance = 0;
-            cell.distance = std::numeric_limits<int>::max();
+            cell.disktraDistance = std::numeric_limits<int>::max();
+            cell.aStarVisited = false;
+
         }
     }
     while (!BFSq.empty())
@@ -249,6 +255,8 @@ void Board::reset() {
         GBFSpq.pop();
     while (!DJKpq.empty())
         DJKpq.pop();
+    while (!ASpq.empty())
+        ASpq.pop();
     start = nullptr;
     finish = nullptr;
 }
@@ -311,13 +319,14 @@ void Board::createPath() {
         temp = temp->prev;
     }
 }
+
 void Board::DijkstraSearchLoop()
 {
     if (!DJKstarted)
     {
         DJKstarted = true;
         DJKpq.push(std::make_pair(0, start));
-        start->distance = 0;
+        start->disktraDistance = 0;
         start->visited = true;
     }
 
@@ -334,11 +343,11 @@ void Board::DijkstraSearchLoop()
                 if(abs(cell->x - curr->x) == abs(cell->y - curr->y)){
                     weight = sqrt(2);
                 }
-                if (cell->distance > curr->distance + weight)
+                if (cell->disktraDistance > curr->disktraDistance + weight)
                 {
                     cell->prev = curr;
-                    cell->distance = curr->distance + weight;
-                    DJKpq.push(std::make_pair(curr->distance + weight, cell));
+                    cell->disktraDistance = curr->disktraDistance + weight;
+                    DJKpq.emplace(curr->disktraDistance + weight, cell);
                 }
                 if (cell->isFinish)
                 {
@@ -392,12 +401,14 @@ void Board::resetPath() {
     BFSstarted = false;
     DJKstarted= false;
     GBFSstarted = false;
+    ASstarted = false;
     for (auto& row : cells) {
         for (auto& cell : row) {
             cell.isPath = false;
             cell.visited = false;
             cell.GBFSdistance = 0;
-            cell.distance = std::numeric_limits<int>::max();
+            cell.disktraDistance = std::numeric_limits<int>::max();
+            cell.aStarVisited = false;
         }
     }
     while (!BFSq.empty())
@@ -406,10 +417,59 @@ void Board::resetPath() {
         GBFSpq.pop();
     while (!DJKpq.empty())
         DJKpq.pop();
+    while(!ASpq.empty())
+        ASpq.pop();
+}
+
+void Board::AStarLoop() {
+    if (!ASstarted)
+    {
+        ASstarted = true;
+        ASpq.push(start);
+        start->disktraDistance = 0;
+        start->setGBFSDistance(finish);
+        start->visited = true;
+        start->aStarVisited = true;
+    }
+    if (!ASpq.empty() and !finished)
+    {
+        Cell *curr = ASpq.top();
+        ASpq.pop();
+        curr->aStarVisited = true;
+        for (auto &cell : curr->nearbyCells)
+        {
+            if (!cell->aStarVisited and !cell->isWall and !diagonallyWalled(curr, cell))
+            {
+                cell->visited = true;
+                cell->setGBFSDistance(finish);
+                float weight = 1;
+                if(abs(cell->x - curr->x) == abs(cell->y - curr->y)){
+                    weight = sqrt(2);
+                }
+                if (cell->disktraDistance > curr->disktraDistance + weight)
+                {
+                    cell->prev = curr;
+                    cell->disktraDistance = curr->disktraDistance + weight;
+                    ASpq.emplace(cell);
+                }
+
+                if (cell->isFinish)
+                {
+                    finished = true;
+                    createPath();
+                    break;
+                }
+            }
+        }
+    }
 }
 
 
 bool Board::CompareGBFSdistance::operator()(Board::Cell *lhs, Board::Cell *rhs) {
     //std::cout << lhs->GBFSdistance << "<" << rhs->GBFSdistance << std::endl;
     return lhs->GBFSdistance > rhs->GBFSdistance;
+}
+
+bool Board::CompareASdistance::operator()(Board::Cell *lhs, Board::Cell *rhs) {
+    return lhs->GBFSdistance+lhs->disktraDistance > rhs->GBFSdistance + rhs->disktraDistance;
 }
