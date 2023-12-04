@@ -12,7 +12,7 @@
 #include <limits>
 #include <string>
 #include <cmath>
-#include <SFML/Graphics.hpp>
+#include "SFML/Graphics.hpp"
 #include <fstream>
 
 #define WINDOW_WIDTH 1300
@@ -66,7 +66,7 @@ class Board {
     sf::Text algorithm;
     sf::Text mazeSize;
     std::string algorithms[4] = {"BFS", "Dijkstra", "A*", "Greedy Best First Search"};
-    int dimensions[8] = {7 ,9, 11, 13 ,15, 17, 19, 21};
+    int dimensions[11] = {7 ,9, 11, 13 ,15, 17, 19, 21, 23, 25, 49};
 
 
 
@@ -83,7 +83,7 @@ class Board {
     bool ASstarted = false;
 
 public:
-    Board(int boardLength);
+    Board();
     void downArrow();
     void upArrow();
     void draw(sf::RenderWindow &window);

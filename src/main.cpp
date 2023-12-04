@@ -1,4 +1,4 @@
-#include <SFML/Graphics.hpp>
+#include "SFML/Graphics.hpp"
 #include "Board.h"
 
 void ProcessInputs(sf::RenderWindow &window, Board &board) {
@@ -54,10 +54,8 @@ void ProcessInputs(sf::RenderWindow &window, Board &board) {
 int main() {
 
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Pathfinding");
-    window.setFramerateLimit(30);
 
-    int boardLength = 13;  //change side length count here (its always a square)
-    Board board(boardLength);
+    Board board;
 
     while (window.isOpen()) {
 

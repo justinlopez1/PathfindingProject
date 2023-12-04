@@ -71,9 +71,9 @@ void Board::Cell::setGBFSDistance(Board::Cell *finish) {
 }
 
 
-Board::Board(int boardLength) {
-    this->boardLength = boardLength;
-    cellSideLength = BOARD_LEN / boardLength;
+Board::Board() {
+    this->boardLength = dimensions[0];
+    cellSideLength = float(BOARD_LEN) / float(boardLength);
     finished = false;
     for (int i = 0; i < boardLength; i++) {
         std::vector<Cell> temp;
@@ -122,10 +122,12 @@ Board::Board(int boardLength) {
                       "Shift+Right: Place Finish\n\n"
                       "Keyboard Instruction\n"
                       "Enter: Reset Board\n"
-                      "r: Rest Path\n"
-                      "Down/Up Arrow: Change Algo\n";
+                      "r: Reset Path\n"
+                      "Down/Up Arrow: Change Algo\n"
+                      "k/l: Change Board Size\n"
+                      "g: generate random maze\n";
 
-    font.loadFromFile("../font.ttf");
+    font.loadFromFile("resources/font.ttf");
     instructions.setFont(font);
     instructions.setString(ini);
     instructions.setScale(.8, .8);
@@ -136,13 +138,13 @@ Board::Board(int boardLength) {
     algorithm.setString("Current Algorithm:\n  " + algorithms[cycle]);
     algorithm.setScale(.8, .8);
     algorithm.setFillColor(sf::Color::Blue);
-    algorithm.setPosition(BOARD_LEN, 270);
+    algorithm.setPosition(BOARD_LEN, BOARD_LEN-200);
 
     mazeSize.setFont(font);
     mazeSize.setString("Current Size: " + std::to_string(dimensions[dimensionCycle]) + "x" + std::to_string(dimensions[dimensionCycle]));
     mazeSize.setScale(.8, .8);
     mazeSize.setFillColor(sf::Color::Blue);
-    mazeSize.setPosition(BOARD_LEN, 330);
+    mazeSize.setPosition(BOARD_LEN, BOARD_LEN-100);
 
 }
 
@@ -187,24 +189,25 @@ void Board::upArrow() {
 void Board::changeDimensionsK(){
     dimensionCycle--;
     if (dimensionCycle == -1)
-        dimensionCycle = 7;
+        dimensionCycle = 10;
     boardLength = dimensions[dimensionCycle];
     mazeSize.setString("Current Size: " + std::to_string(boardLength) + "x" + std::to_string(boardLength));
     resizeBoard();
 }
 void Board::changeDimensionsL(){
     dimensionCycle++;
-    if (dimensionCycle == 8)
+    if (dimensionCycle == 11)
         dimensionCycle = 0;
-    boardLength = dimensions[dimensionCycle];\
+    boardLength = dimensions[dimensionCycle];
     mazeSize.setString("Current Size: " + std::to_string(boardLength) + "x" + std::to_string(boardLength));
     resizeBoard();
 }
 
 void Board::resizeBoard(){
+    reset();
     cells.clear();
     borders.clear();
-    cellSideLength = BOARD_LEN / boardLength;
+    cellSideLength = float(BOARD_LEN) / float(boardLength);
     finished = false;
     for (int i = 0; i < boardLength; i++) {
         std::vector<Cell> temp;
@@ -245,35 +248,6 @@ void Board::resizeBoard(){
                 cells[i][j].nearbyCells.push_back(&cells[i+1][j+1]);
         }
     }
-
-    std::string ini = "Mouse Instruction\n"
-                      "Left: Place Wall\n"
-                      "Right: Erase Wall\n"
-                      "Shift+Left: Place Start\n"
-                      "Shift+Right: Place Finish\n\n"
-                      "Keyboard Instruction\n"
-                      "Enter: Reset Board\n"
-                      "r: Rest Path\n"
-                      "Down/Up Arrow: Change Algo\n";
-
-    font.loadFromFile("../font.ttf");
-    instructions.setFont(font);
-    instructions.setString(ini);
-    instructions.setScale(.8, .8);
-    instructions.setFillColor(sf::Color::Blue);
-    instructions.setPosition(BOARD_LEN, 0);
-
-    algorithm.setFont(font);
-    algorithm.setString("Current Algorithm:\n  " + algorithms[cycle]);
-    algorithm.setScale(.8, .8);
-    algorithm.setFillColor(sf::Color::Blue);
-    algorithm.setPosition(BOARD_LEN, 270);
-
-    mazeSize.setFont(font);
-    mazeSize.setString("Current Size: " + std::to_string(dimensions[dimensionCycle]) + "x" + std::to_string(dimensions[dimensionCycle]));
-    mazeSize.setScale(.8, .8);
-    mazeSize.setFillColor(sf::Color::Blue);
-    mazeSize.setPosition(BOARD_LEN, 330);
 }
 
 void Board::leftClick(sf::Vector2i pos) {
@@ -572,7 +546,7 @@ bool Board::CompareASdistance::operator()(Board::Cell *lhs, Board::Cell *rhs) {
 void Board::readMazeFile(){
     reset();
     std::string dimension = std::to_string(boardLength) + "x" + std::to_string(boardLength) + ".txt";
-    std::ifstream maze("/Users/andresbodero/Documents/Project3(DSA)/cmake-sfml-project/mazes/" + dimension);
+    std::ifstream maze("resources/mazes/" + dimension);
     int lines = 1 + boardLength * (rand() % 100);
     int x = 0; 
 
