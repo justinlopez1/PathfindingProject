@@ -7,7 +7,7 @@
 Board::Cell::Cell(int x, int y, float sideLength) {
     this->x = x;
     this->y = y;
-    this->disktraDistance = std::numeric_limits<int>::max();
+    this->dijkstraDistance = std::numeric_limits<int>::max();
     isFinish = false;
     isStart = false;
     isWall = false;
@@ -55,17 +55,13 @@ void Board::Cell::draw(sf::RenderWindow &window, sf::Font* font) {
     window.draw(tile);
 
     if (GBFSdistance > 0) {
-        t.setString(std::to_string(GBFSdistance + disktraDistance));
+        t.setString(std::to_string(GBFSdistance + dijkstraDistance));
         t.setPosition(tile.getPosition());
         t.setFont(*font);
         t.setFillColor(sf::Color::Green);
         t.setScale(.75, .75);
         window.draw(t);
     }
-
-
-
-
 }
 
 void Board::Cell::setGBFSDistance(Board::Cell *finish) {
@@ -73,7 +69,6 @@ void Board::Cell::setGBFSDistance(Board::Cell *finish) {
     int vDist = abs(finish->y - y);
     GBFSdistance = std::max(hDist, vDist) + (std::min(hDist, vDist)*sqrt(2));
 }
-
 
 
 Board::Board(int boardLength) {
@@ -130,7 +125,7 @@ Board::Board(int boardLength) {
                       "r: Rest Path\n"
                       "Down/Up Arrow: Change Algo\n";
 
-    font.loadFromFile("font.ttf");
+    font.loadFromFile("../font.ttf");
     instructions.setFont(font);
     instructions.setString(ini);
     instructions.setScale(.8, .8);
@@ -142,6 +137,12 @@ Board::Board(int boardLength) {
     algorithm.setScale(.8, .8);
     algorithm.setFillColor(sf::Color::Blue);
     algorithm.setPosition(BOARD_LEN, 270);
+
+    mazeSize.setFont(font);
+    mazeSize.setString("Current Size: " + std::to_string(dimensions[dimensionCycle]) + "x" + std::to_string(dimensions[dimensionCycle]));
+    mazeSize.setScale(.8, .8);
+    mazeSize.setFillColor(sf::Color::Blue);
+    mazeSize.setPosition(BOARD_LEN, 330);
 
 }
 
@@ -156,6 +157,7 @@ void Board::draw(sf::RenderWindow &window) {
     }
     window.draw(instructions);
     window.draw(algorithm);
+    window.draw(mazeSize);
 }
 void Board::checkAlgorithm(){
     if(algorithms[cycle] == "BFS")
@@ -180,6 +182,98 @@ void Board::upArrow() {
     if (cycle == -1)
         cycle = 3;
     algorithm.setString("Current Algorithm: \n  " + algorithms[cycle]);
+}
+
+void Board::changeDimensionsK(){
+    dimensionCycle--;
+    if (dimensionCycle == -1)
+        dimensionCycle = 7;
+    boardLength = dimensions[dimensionCycle];
+    mazeSize.setString("Current Size: " + std::to_string(boardLength) + "x" + std::to_string(boardLength));
+    resizeBoard();
+}
+void Board::changeDimensionsL(){
+    dimensionCycle++;
+    if (dimensionCycle == 8)
+        dimensionCycle = 0;
+    boardLength = dimensions[dimensionCycle];\
+    mazeSize.setString("Current Size: " + std::to_string(boardLength) + "x" + std::to_string(boardLength));
+    resizeBoard();
+}
+
+void Board::resizeBoard(){
+    cells.clear();
+    borders.clear();
+    cellSideLength = BOARD_LEN / boardLength;
+    finished = false;
+    for (int i = 0; i < boardLength; i++) {
+        std::vector<Cell> temp;
+        cells.push_back(temp);
+        for (int j = 0; j < boardLength; j++) {
+            cells[i].emplace_back(j, i, cellSideLength);
+        }
+    }
+    for (int i = 1; i < boardLength; i++) {
+        sf::RectangleShape temp;
+        temp.setFillColor(sf::Color(115, 147, 179));
+        temp.setSize(sf::Vector2f(2, BOARD_LEN));
+        temp.setPosition(i*cellSideLength, 0);
+        borders.push_back(temp);
+        sf::RectangleShape temp2;
+        temp2.setFillColor(sf::Color(115, 147, 179));
+        temp2.setSize(sf::Vector2f(BOARD_LEN, 2));
+        temp2.setPosition(0, i*cellSideLength);
+        borders.push_back(temp2);
+    }
+    for (int i = 0; i < boardLength; i++) {
+        for (int j = 0; j < boardLength; j++) {
+            if (cells[i][j].y != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i-1][j]);
+            if (cells[i][j].x != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i][j-1]);
+            if (cells[i][j].y != boardLength-1)
+                cells[i][j].nearbyCells.push_back(&cells[i+1][j]);
+            if (cells[i][j].x != boardLength-1)
+                cells[i][j].nearbyCells.push_back(&cells[i][j+1]);
+            if (cells[i][j].y != 0 and cells[i][j].x != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i-1][j-1]);
+            if (cells[i][j].y != 0 and cells[i][j].x != boardLength-1)
+                cells[i][j].nearbyCells.push_back(&cells[i-1][j+1]);
+            if (cells[i][j].y != boardLength-1 and cells[i][j].x != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i+1][j-1]);
+            if (cells[i][j].x != boardLength-1 and cells[i][j].y != boardLength-1)
+                cells[i][j].nearbyCells.push_back(&cells[i+1][j+1]);
+        }
+    }
+
+    std::string ini = "Mouse Instruction\n"
+                      "Left: Place Wall\n"
+                      "Right: Erase Wall\n"
+                      "Shift+Left: Place Start\n"
+                      "Shift+Right: Place Finish\n\n"
+                      "Keyboard Instruction\n"
+                      "Enter: Reset Board\n"
+                      "r: Rest Path\n"
+                      "Down/Up Arrow: Change Algo\n";
+
+    font.loadFromFile("../font.ttf");
+    instructions.setFont(font);
+    instructions.setString(ini);
+    instructions.setScale(.8, .8);
+    instructions.setFillColor(sf::Color::Blue);
+    instructions.setPosition(BOARD_LEN, 0);
+
+    algorithm.setFont(font);
+    algorithm.setString("Current Algorithm:\n  " + algorithms[cycle]);
+    algorithm.setScale(.8, .8);
+    algorithm.setFillColor(sf::Color::Blue);
+    algorithm.setPosition(BOARD_LEN, 270);
+
+    mazeSize.setFont(font);
+    mazeSize.setString("Current Size: " + std::to_string(dimensions[dimensionCycle]) + "x" + std::to_string(dimensions[dimensionCycle]));
+    mazeSize.setScale(.8, .8);
+    mazeSize.setFillColor(sf::Color::Blue);
+    mazeSize.setPosition(BOARD_LEN, 330);
 }
 
 void Board::leftClick(sf::Vector2i pos) {
@@ -244,7 +338,7 @@ void Board::reset() {
             cell.visited = false;
             cell.isPath = false;
             cell.GBFSdistance = 0;
-            cell.disktraDistance = std::numeric_limits<int>::max();
+            cell.dijkstraDistance = std::numeric_limits<int>::max();
             cell.aStarVisited = false;
 
         }
@@ -326,7 +420,7 @@ void Board::DijkstraSearchLoop()
     {
         DJKstarted = true;
         DJKpq.push(std::make_pair(0, start));
-        start->disktraDistance = 0;
+        start->dijkstraDistance = 0;
         start->visited = true;
     }
 
@@ -343,11 +437,11 @@ void Board::DijkstraSearchLoop()
                 if(abs(cell->x - curr->x) == abs(cell->y - curr->y)){
                     weight = sqrt(2);
                 }
-                if (cell->disktraDistance > curr->disktraDistance + weight)
+                if (cell->dijkstraDistance > curr->dijkstraDistance + weight)
                 {
                     cell->prev = curr;
-                    cell->disktraDistance = curr->disktraDistance + weight;
-                    DJKpq.emplace(curr->disktraDistance + weight, cell);
+                    cell->dijkstraDistance = curr->dijkstraDistance + weight;
+                    DJKpq.emplace(curr->dijkstraDistance + weight, cell);
                 }
                 if (cell->isFinish)
                 {
@@ -407,7 +501,7 @@ void Board::resetPath() {
             cell.isPath = false;
             cell.visited = false;
             cell.GBFSdistance = 0;
-            cell.disktraDistance = std::numeric_limits<int>::max();
+            cell.dijkstraDistance = std::numeric_limits<int>::max();
             cell.aStarVisited = false;
         }
     }
@@ -426,7 +520,7 @@ void Board::AStarLoop() {
     {
         ASstarted = true;
         ASpq.push(start);
-        start->disktraDistance = 0;
+        start->dijkstraDistance = 0;
         start->setGBFSDistance(finish);
         start->visited = true;
         start->aStarVisited = true;
@@ -446,10 +540,10 @@ void Board::AStarLoop() {
                 if(abs(cell->x - curr->x) == abs(cell->y - curr->y)){
                     weight = sqrt(2);
                 }
-                if (cell->disktraDistance > curr->disktraDistance + weight)
+                if (cell->dijkstraDistance > curr->dijkstraDistance + weight)
                 {
                     cell->prev = curr;
-                    cell->disktraDistance = curr->disktraDistance + weight;
+                    cell->dijkstraDistance = curr->dijkstraDistance + weight;
                     ASpq.emplace(cell);
                 }
 
@@ -471,5 +565,42 @@ bool Board::CompareGBFSdistance::operator()(Board::Cell *lhs, Board::Cell *rhs) 
 }
 
 bool Board::CompareASdistance::operator()(Board::Cell *lhs, Board::Cell *rhs) {
-    return lhs->GBFSdistance+lhs->disktraDistance > rhs->GBFSdistance + rhs->disktraDistance;
+    return lhs->GBFSdistance+lhs->dijkstraDistance > rhs->GBFSdistance + rhs->dijkstraDistance;
+}
+
+
+void Board::readMazeFile(){
+    reset();
+    std::string dimension = std::to_string(boardLength) + "x" + std::to_string(boardLength) + ".txt";
+    std::ifstream maze("/Users/andresbodero/Documents/Project3(DSA)/cmake-sfml-project/mazes/" + dimension);
+    int lines = 1 + boardLength * (rand() % 100);
+    int x = 0; 
+
+    maze.seekg(std::ios::beg);
+    for(int i = 0; i < lines-1;i++){
+        maze.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    }
+
+    for(int i = 0; i < boardLength; i++){
+        std::string line;
+        std::getline(maze, line);
+        for(char c : line){
+            switch(c){
+                case 'S':
+                    cells[i][x].isStart = true;
+                    start = &cells[i][x];
+                    break;
+                case 'E':
+                    cells[i][x].isFinish = true;
+                    finish = &cells[i][x];
+                    break;
+                case '#':
+                    cells[i][x].isWall = true;  
+                    break;
+            }
+            x++;
+        }
+        x = 0;
+    }
+    std::cout << "done" << std::endl;
 }
