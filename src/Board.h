@@ -67,10 +67,16 @@ class Board {
     sf::Text algorithm;
     sf::Text mazeSize;
     sf::Text framerate;
+    sf::Text totalCheckstext;
+    sf::Text pathLengthtext;
+    sf::Text timeTakentext;
     std::string algorithms[4] = {"BFS", "Dijkstra", "A*", "Greedy Best First Search"};
     int dimensions[11] = {7 ,9, 11, 13 ,15, 17, 19, 21, 23, 25, 49};
     int framerates[9] = {20, 30, 40, 50, 60, 80, 100, 200, 1000};
 
+    int totalChecks;
+    float pathLength;
+    sf::Time timeTaken;
 
 
     std::queue<Cell*> BFSq;
@@ -110,6 +116,7 @@ public:
     bool isFinished();
     void createPath();
     bool diagonallyWalled(Cell* first, Cell* second);
+    bool isDiagonal(Cell* first, Cell* second);
     void readMazeFile();
 
     void BreadthFirstSearchloop();

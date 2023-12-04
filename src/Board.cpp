@@ -153,6 +153,23 @@ Board::Board() {
     framerate.setFillColor(sf::Color::Blue);
     framerate.setPosition(BOARD_LEN, BOARD_LEN-125);
 
+    totalCheckstext.setFont(font);
+    totalCheckstext.setString("Total Checks: ");
+    totalCheckstext.setScale(.8, .8);
+    totalCheckstext.setFillColor(sf::Color::Blue);
+    totalCheckstext.setPosition(BOARD_LEN, BOARD_LEN-200);
+
+    pathLengthtext.setFont(font);
+    pathLengthtext.setString("Path Length: ");
+    pathLengthtext.setScale(.8, .8);
+    pathLengthtext.setFillColor(sf::Color::Blue);
+    pathLengthtext.setPosition(BOARD_LEN, BOARD_LEN-225);
+
+    timeTakentext.setFont(font);
+    timeTakentext.setString("Time Taken: ");
+    timeTakentext.setScale(.8, .8);
+    timeTakentext.setFillColor(sf::Color::Blue);
+    timeTakentext.setPosition(BOARD_LEN, BOARD_LEN-250);
 }
 
 void Board::draw(sf::RenderWindow &window) {
@@ -173,6 +190,19 @@ void Board::draw(sf::RenderWindow &window) {
     window.draw(algorithm);
     window.draw(mazeSize);
     window.draw(framerate);
+    if (!finished) {
+        totalCheckstext.setString("Total Checks:");
+        timeTakentext.setString("Time Taken:");
+        pathLengthtext.setString("Path Length:");
+    }
+    else {
+        totalCheckstext.setString("Total Checks: "+std::to_string(totalChecks));
+        timeTakentext.setString("Time Taken: "+std::to_string(timeTaken.asSeconds()));
+        pathLengthtext.setString("Path Length: "+std::to_string(pathLength));
+    }
+    window.draw(totalCheckstext);
+    window.draw(timeTakentext);
+    window.draw(pathLengthtext);
 }
 void Board::checkAlgorithm(){
 
@@ -313,6 +343,9 @@ void Board::shiftRightClick(sf::Event &event) {
 }
 
 void Board::reset() {
+    pathLength = 0;
+    totalChecks = 0;
+
     finished = false;
     BFSstarted = false;
     GBFSstarted = false;
@@ -363,7 +396,7 @@ void Board::BreadthFirstSearchloop() {
                     createPath();
                     break;
                 }
-
+                totalChecks++;
                 BFSq.push(cell);
             }
         }
@@ -395,9 +428,15 @@ bool Board::isFinished() {
 }
 
 void Board::createPath() {
-    Cell* temp = finish->prev;
+    Cell* temp = finish;
     while (!temp->isStart) {
         temp->isPath = true;
+
+        if (isDiagonal(temp, temp->prev))
+            pathLength += sqrt(2);
+        else
+            pathLength += 1;
+
         temp = temp->prev;
     }
 }
@@ -429,6 +468,7 @@ void Board::DijkstraSearchLoop()
                 {
                     cell->prev = curr;
                     cell->dijkstraDistance = curr->dijkstraDistance + weight;
+                    totalChecks++;
                     DJKpq.emplace(curr->dijkstraDistance + weight, cell);
                 }
                 if (cell->isFinish)
@@ -465,7 +505,7 @@ void Board::GreedyBestFirstSearchLoop() {
                     createPath();
                     break;
                 }
-
+                totalChecks++;
                 GBFSpq.push(cell);
             }
         }
@@ -479,6 +519,9 @@ bool Board::diagonallyWalled(Board::Cell *first, Board::Cell *second) {
 }
 
 void Board::resetPath() {
+    pathLength = 0;
+    totalChecks = 0;
+
     finished = false;
     BFSstarted = false;
     DJKstarted= false;
@@ -532,6 +575,7 @@ void Board::AStarLoop() {
                 {
                     cell->prev = curr;
                     cell->dijkstraDistance = curr->dijkstraDistance + weight;
+                    totalChecks++;
                     ASpq.emplace(cell);
                 }
 
@@ -609,4 +653,10 @@ void Board::decreaseFramerate() {
     framerate.setString(std::to_string(framerates[framerateCycle])+" fps");
     if (framerateCycle == 8)
         framerate.setString("Unlimited fps");
+}
+
+bool Board::isDiagonal(Board::Cell *first, Board::Cell *second) {
+    if (abs(first->x-second->x)==1 and abs(first->y-second->y)==1)
+        return true;
+    return false;
 }
