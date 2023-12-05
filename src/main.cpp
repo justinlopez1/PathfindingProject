@@ -1,4 +1,4 @@
-#include <SFML/Graphics.hpp>
+#include "SFML/Graphics.hpp"
 #include "Board.h"
 
 void ProcessInputs(sf::RenderWindow &window, Board &board) {
@@ -38,14 +38,20 @@ void ProcessInputs(sf::RenderWindow &window, Board &board) {
             if (event.key.code == sf::Keyboard::Up) {
                 board.upArrow();
             }
-            if(event.key.code == sf::Keyboard::G){
+            if (event.key.code == sf::Keyboard::G){
                 board.readMazeFile();
             }
-            if(event.key.code == sf::Keyboard::K){
+            if (event.key.code == sf::Keyboard::Left){
                 board.changeDimensionsK();
             }
-            if(event.key.code == sf::Keyboard::L){
+            if (event.key.code == sf::Keyboard::Right){
                 board.changeDimensionsL();
+            }
+            if (event.key.code == sf::Keyboard::P) {
+                board.increaseFramerate();
+            }
+            if (event.key.code == sf::Keyboard::O) {
+                board.decreaseFramerate();
             }
         }
     }
@@ -54,10 +60,8 @@ void ProcessInputs(sf::RenderWindow &window, Board &board) {
 int main() {
 
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Pathfinding");
-    window.setFramerateLimit(30);
 
-    int boardLength = 13;  //change side length count here (its always a square)
-    Board board(boardLength);
+    Board board;
 
     while (window.isOpen()) {
 

@@ -4,7 +4,7 @@
 
 #ifndef PATHFINDINGPROJECT_BOARD_H
 #define PATHFINDINGPROJECT_BOARD_H
-
+//
 #pragma once
 #include <vector>
 #include <iostream>
@@ -12,7 +12,7 @@
 #include <limits>
 #include <string>
 #include <cmath>
-#include <SFML/Graphics.hpp>
+#include "SFML/Graphics.hpp"
 #include <fstream>
 
 #define WINDOW_WIDTH 1300
@@ -33,7 +33,7 @@ class Board {
         std::vector<Cell*> nearbyCells;
         Cell* prev = nullptr;
 
-        int GBFSdistance = 0;
+        float GBFSdistance = 0;
         void setGBFSDistance(Cell* finish);
 
         float dijkstraDistance;
@@ -58,22 +58,33 @@ class Board {
     float cellSideLength;
     int cycle = 0;
     int dimensionCycle = 3;
+    int framerateCycle = 0;
     bool finished;
+    bool solving = false;
     Cell* start;
     Cell* finish;
     sf::Font font;
-    sf::Text instructions;
+    std::vector<sf::Text> instructions;
     sf::Text algorithm;
     sf::Text mazeSize;
+    sf::Text framerate;
+    sf::Text totalCheckstext;
+    sf::Text pathLengthtext;
+    sf::Text timeTakentext;
     std::string algorithms[4] = {"BFS", "Dijkstra", "A*", "Greedy Best First Search"};
-    int dimensions[8] = {7 ,9, 11, 13 ,15, 17, 19, 21};
+    int dimensions[11] = {7 ,9, 11, 13 ,15, 17, 19, 21, 23, 25, 49};
+    int framerates[9] = {20, 30, 40, 50, 60, 80, 100, 200, 1000};
 
+    int totalChecks;
+    float pathLength;
+    sf::Time timeTaken;
+    sf::Clock timer;
 
 
     std::queue<Cell*> BFSq;
     bool BFSstarted = false;
 
-    std::priority_queue<std::pair<int, Cell *>, std::vector<std::pair<int, Cell *>>, std::greater<std::pair<int, Cell *>>> DJKpq;
+    std::priority_queue<std::pair<float, Cell *>, std::vector<std::pair<float, Cell *>>, std::greater<std::pair<float, Cell *>>> DJKpq;
     bool DJKstarted = false;
 
     std::priority_queue<Cell*, std::vector<Cell*>, CompareGBFSdistance> GBFSpq;
@@ -83,7 +94,8 @@ class Board {
     bool ASstarted = false;
 
 public:
-    Board(int boardLength);
+    Board();
+
     void downArrow();
     void upArrow();
     void draw(sf::RenderWindow &window);
@@ -92,29 +104,27 @@ public:
     void shiftLeftClick(sf::Event &event);
     void shiftRightClick(sf::Event &event);
     void checkAlgorithm();
+    void changeDimensionsK();
+    void changeDimensionsL();
+    void increaseFramerate();
+    void decreaseFramerate();
 
     void reset();
     void resetPath();
+    void resizeBoard();
 
     Cell* findStart();
     Cell* findFinish();
     bool isFinished();
     void createPath();
     bool diagonallyWalled(Cell* first, Cell* second);
-
-    void BreadthFirstSearchloop();
-
-    void GreedyBestFirstSearchLoop();
-
-    void DijkstraSearchLoop();
-
-    void AStarLoop();
-
+    bool isDiagonal(Cell* first, Cell* second);
     void readMazeFile();
 
-    void changeDimensionsK();
-    void changeDimensionsL();
-    void resizeBoard();
+    void BreadthFirstSearchloop();
+    void GreedyBestFirstSearchLoop();
+    void DijkstraSearchLoop();
+    void AStarLoop();
 };
 
 

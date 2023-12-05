@@ -3,7 +3,7 @@
 //
 
 #include "Board.h"
-
+//
 Board::Cell::Cell(int x, int y, float sideLength) {
     this->x = x;
     this->y = y;
@@ -24,10 +24,10 @@ void Board::Cell::draw(sf::RenderWindow &window) {
         tile.setFillColor(sf::Color::Red);
     else if (isStart)
         tile.setFillColor(sf::Color::Green);
-    else if (isPath)
-        tile.setFillColor(sf::Color::Yellow);
     else if (isWall)
         tile.setFillColor(sf::Color::Black);
+    else if (isPath)
+        tile.setFillColor(sf::Color::Yellow);
     else if (visited)
         tile.setFillColor(sf::Color::Blue);
 
@@ -55,11 +55,11 @@ void Board::Cell::draw(sf::RenderWindow &window, sf::Font* font) {
     window.draw(tile);
 
     if (GBFSdistance > 0) {
-        t.setString(std::to_string(GBFSdistance + dijkstraDistance));
+        t.setString(std::to_string(dijkstraDistance));
         t.setPosition(tile.getPosition());
         t.setFont(*font);
         t.setFillColor(sf::Color::Green);
-        t.setScale(.75, .75);
+        t.setScale(.5, .5);
         window.draw(t);
     }
 }
@@ -68,12 +68,13 @@ void Board::Cell::setGBFSDistance(Board::Cell *finish) {
     int hDist = abs(finish->x - x);
     int vDist = abs(finish->y - y);
     GBFSdistance = std::max(hDist, vDist) + (std::min(hDist, vDist)*sqrt(2));
+    GBFSdistance = hDist + vDist;
 }
 
 
-Board::Board(int boardLength) {
-    this->boardLength = boardLength;
-    cellSideLength = BOARD_LEN / boardLength;
+Board::Board() {
+    this->boardLength = dimensions[0];
+    cellSideLength = float(BOARD_LEN) / float(boardLength);
     finished = false;
     for (int i = 0; i < boardLength; i++) {
         std::vector<Cell> temp;
@@ -98,55 +99,112 @@ Board::Board(int boardLength) {
         for (int j = 0; j < boardLength; j++) {
             if (cells[i][j].y != 0)
                 cells[i][j].nearbyCells.push_back(&cells[i-1][j]);
-            if (cells[i][j].x != 0)
-                cells[i][j].nearbyCells.push_back(&cells[i][j-1]);
-            if (cells[i][j].y != boardLength-1)
-                cells[i][j].nearbyCells.push_back(&cells[i+1][j]);
-            if (cells[i][j].x != boardLength-1)
-                cells[i][j].nearbyCells.push_back(&cells[i][j+1]);
-            if (cells[i][j].y != 0 and cells[i][j].x != 0)
-                cells[i][j].nearbyCells.push_back(&cells[i-1][j-1]);
             if (cells[i][j].y != 0 and cells[i][j].x != boardLength-1)
                 cells[i][j].nearbyCells.push_back(&cells[i-1][j+1]);
-            if (cells[i][j].y != boardLength-1 and cells[i][j].x != 0)
-                cells[i][j].nearbyCells.push_back(&cells[i+1][j-1]);
+            if (cells[i][j].x != boardLength-1)
+                cells[i][j].nearbyCells.push_back(&cells[i][j+1]);
             if (cells[i][j].x != boardLength-1 and cells[i][j].y != boardLength-1)
                 cells[i][j].nearbyCells.push_back(&cells[i+1][j+1]);
+            if (cells[i][j].y != boardLength-1)
+                cells[i][j].nearbyCells.push_back(&cells[i+1][j]);
+            if (cells[i][j].y != boardLength-1 and cells[i][j].x != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i+1][j-1]);
+            if (cells[i][j].x != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i][j-1]);
+            if (cells[i][j].y != 0 and cells[i][j].x != 0)
+                cells[i][j].nearbyCells.push_back(&cells[i-1][j-1]);
         }
     }
 
-    std::string ini = "Mouse Instruction\n"
-                      "Left: Place Wall\n"
-                      "Right: Erase Wall\n"
-                      "Shift+Left: Place Start\n"
-                      "Shift+Right: Place Finish\n\n"
-                      "Keyboard Instruction\n"
-                      "Enter: Reset Board\n"
-                      "r: Rest Path\n"
-                      "Down/Up Arrow: Change Algo\n";
 
-    font.loadFromFile("../font.ttf");
-    instructions.setFont(font);
-    instructions.setString(ini);
-    instructions.setScale(.8, .8);
-    instructions.setFillColor(sf::Color::Blue);
-    instructions.setPosition(BOARD_LEN, 0);
+
+    font.loadFromFile("resources/font.ttf");
+    sf::Text instructions1;
+    instructions1.setFont(font);
+    instructions1.setString("Mouse Instruction");
+    instructions1.setScale(.8, .8);
+    instructions1.setFillColor(sf::Color::Blue);
+    instructions1.setPosition(BOARD_LEN+15, 0);
+    instructions1.setStyle(sf::Text::Underlined);
+
+    sf::Text instructions2;
+    instructions2.setFont(font);
+    instructions2.setString(" Left: Place Wall\n"
+                            " Right: Erase Wall\n"
+                            " Shift+Left: Place Start\n"
+                            " Shift+Right: Place Finish\n");
+    instructions2.setScale(.8, .8);
+    instructions2.setFillColor(sf::Color::Blue);
+    instructions2.setPosition(BOARD_LEN, instructions1.getPosition().y+instructions1.getLocalBounds().height);
+
+    sf::Text instructions3;
+    instructions3.setFont(font);
+    instructions3.setString("Keyboard Instruction");
+    instructions3.setScale(.8, .8);
+    instructions3.setFillColor(sf::Color::Blue);
+    instructions3.setPosition(BOARD_LEN+15, instructions2.getPosition().y+instructions2.getLocalBounds().height);
+    instructions3.setStyle(sf::Text::Underlined);
+
+    sf::Text instructions4;
+    instructions4.setFont(font);
+    instructions4.setString(" Enter: Reset Board\n"
+                            " r: Reset Path\n"
+                            " Down/Up Arrow: Change Algo\n"
+                            " Left/Right Arrow: Change Board Size\n"
+                            " o/p: Change Framerate\n"
+                            " g: Generate Random Maze\n");
+    instructions4.setScale(.8, .8);
+    instructions4.setFillColor(sf::Color::Blue);
+    instructions4.setPosition(BOARD_LEN, instructions3.getPosition().y+instructions3.getLocalBounds().height);
+
+    instructions.push_back(instructions1);
+    instructions.push_back(instructions2);
+    instructions.push_back(instructions3);
+    instructions.push_back(instructions4);
 
     algorithm.setFont(font);
-    algorithm.setString("Current Algorithm:\n  " + algorithms[cycle]);
+    algorithm.setString(" Current Algorithm:\n  " + algorithms[cycle]);
     algorithm.setScale(.8, .8);
     algorithm.setFillColor(sf::Color::Blue);
-    algorithm.setPosition(BOARD_LEN, 270);
+    algorithm.setPosition(BOARD_LEN, BOARD_LEN-100);
 
     mazeSize.setFont(font);
-    mazeSize.setString("Current Size: " + std::to_string(dimensions[dimensionCycle]) + "x" + std::to_string(dimensions[dimensionCycle]));
+    mazeSize.setString(" Current Size: " + std::to_string(dimensions[dimensionCycle]) + "x" + std::to_string(dimensions[dimensionCycle]));
     mazeSize.setScale(.8, .8);
     mazeSize.setFillColor(sf::Color::Blue);
-    mazeSize.setPosition(BOARD_LEN, 330);
+    mazeSize.setPosition(BOARD_LEN, BOARD_LEN-50);
 
+    framerate.setFont(font);
+    framerate.setString(" " + std::to_string(framerates[framerateCycle])+" fps");
+    framerate.setScale(.8, .8);
+    framerate.setFillColor(sf::Color::Blue);
+    framerate.setPosition(BOARD_LEN, BOARD_LEN-125);
+
+    totalCheckstext.setFont(font);
+    totalCheckstext.setString(" Total Checks: ");
+    totalCheckstext.setScale(.8, .8);
+    totalCheckstext.setFillColor(sf::Color::Blue);
+    totalCheckstext.setPosition(BOARD_LEN, BOARD_LEN-200);
+
+    pathLengthtext.setFont(font);
+    pathLengthtext.setString(" Path Length: ");
+    pathLengthtext.setScale(.8, .8);
+    pathLengthtext.setFillColor(sf::Color::Blue);
+    pathLengthtext.setPosition(BOARD_LEN, BOARD_LEN-225);
+
+    timeTakentext.setFont(font);
+    timeTakentext.setString(" Time Taken: ");
+    timeTakentext.setScale(.8, .8);
+    timeTakentext.setFillColor(sf::Color::Blue);
+    timeTakentext.setPosition(BOARD_LEN, BOARD_LEN-250);
 }
 
 void Board::draw(sf::RenderWindow &window) {
+    if (findStart() != nullptr and findFinish() != nullptr and !isFinished())
+        window.setFramerateLimit(framerates[framerateCycle]);
+    else
+        window.setFramerateLimit(100000);
+
     for (auto& row : cells) {
         for (auto& cell : row) {
             cell.draw(window);
@@ -155,11 +213,30 @@ void Board::draw(sf::RenderWindow &window) {
     for (auto& line : borders) {
         window.draw(line);
     }
-    window.draw(instructions);
+    for (auto& text : instructions)
+        window.draw(text);
     window.draw(algorithm);
     window.draw(mazeSize);
+    window.draw(framerate);
+    if (!finished) {
+        totalCheckstext.setString(" Total Checks:");
+        timeTakentext.setString(" Time Taken:");
+        pathLengthtext.setString(" Path Length:");
+    }
+    else {
+        totalCheckstext.setString(" Total Checks: "+std::to_string(totalChecks));
+        timeTakentext.setString(" Time Taken: "+std::to_string(timeTaken.asSeconds()));
+        pathLengthtext.setString(" Path Length: "+std::to_string(pathLength));
+    }
+    window.draw(totalCheckstext);
+    window.draw(timeTakentext);
+    window.draw(pathLengthtext);
 }
 void Board::checkAlgorithm(){
+    if (!solving) {
+        timer.restart();
+        solving = true;
+    }
     if(algorithms[cycle] == "BFS")
         BreadthFirstSearchloop();
     if(algorithms[cycle] == "Dijkstra")
@@ -169,42 +246,47 @@ void Board::checkAlgorithm(){
     }
     if(algorithms[cycle] == "Greedy Best First Search")
         GreedyBestFirstSearchLoop();
+    if (finished and solving) {
+        solving = false;
+        timeTaken = timer.getElapsedTime();
+    }
 }
 
 void Board::downArrow() {
     cycle++;
     if (cycle == 4)
         cycle = 0;
-    algorithm.setString("Current Algorithm: \n  " + algorithms[cycle]);
+    algorithm.setString(" Current Algorithm: \n  " + algorithms[cycle]);
 }
 void Board::upArrow() {
      cycle--;
     if (cycle == -1)
         cycle = 3;
-    algorithm.setString("Current Algorithm: \n  " + algorithms[cycle]);
+    algorithm.setString(" Current Algorithm: \n  " + algorithms[cycle]);
 }
 
 void Board::changeDimensionsK(){
     dimensionCycle--;
     if (dimensionCycle == -1)
-        dimensionCycle = 7;
+        dimensionCycle = 10;
     boardLength = dimensions[dimensionCycle];
-    mazeSize.setString("Current Size: " + std::to_string(boardLength) + "x" + std::to_string(boardLength));
+    mazeSize.setString(" Current Size: " + std::to_string(boardLength) + "x" + std::to_string(boardLength));
     resizeBoard();
 }
 void Board::changeDimensionsL(){
     dimensionCycle++;
-    if (dimensionCycle == 8)
+    if (dimensionCycle == 11)
         dimensionCycle = 0;
-    boardLength = dimensions[dimensionCycle];\
-    mazeSize.setString("Current Size: " + std::to_string(boardLength) + "x" + std::to_string(boardLength));
+    boardLength = dimensions[dimensionCycle];
+    mazeSize.setString(" Current Size: " + std::to_string(boardLength) + "x" + std::to_string(boardLength));
     resizeBoard();
 }
 
 void Board::resizeBoard(){
+    reset();
     cells.clear();
     borders.clear();
-    cellSideLength = BOARD_LEN / boardLength;
+    cellSideLength = float(BOARD_LEN) / float(boardLength);
     finished = false;
     for (int i = 0; i < boardLength; i++) {
         std::vector<Cell> temp;
@@ -245,35 +327,6 @@ void Board::resizeBoard(){
                 cells[i][j].nearbyCells.push_back(&cells[i+1][j+1]);
         }
     }
-
-    std::string ini = "Mouse Instruction\n"
-                      "Left: Place Wall\n"
-                      "Right: Erase Wall\n"
-                      "Shift+Left: Place Start\n"
-                      "Shift+Right: Place Finish\n\n"
-                      "Keyboard Instruction\n"
-                      "Enter: Reset Board\n"
-                      "r: Rest Path\n"
-                      "Down/Up Arrow: Change Algo\n";
-
-    font.loadFromFile("../font.ttf");
-    instructions.setFont(font);
-    instructions.setString(ini);
-    instructions.setScale(.8, .8);
-    instructions.setFillColor(sf::Color::Blue);
-    instructions.setPosition(BOARD_LEN, 0);
-
-    algorithm.setFont(font);
-    algorithm.setString("Current Algorithm:\n  " + algorithms[cycle]);
-    algorithm.setScale(.8, .8);
-    algorithm.setFillColor(sf::Color::Blue);
-    algorithm.setPosition(BOARD_LEN, 270);
-
-    mazeSize.setFont(font);
-    mazeSize.setString("Current Size: " + std::to_string(dimensions[dimensionCycle]) + "x" + std::to_string(dimensions[dimensionCycle]));
-    mazeSize.setScale(.8, .8);
-    mazeSize.setFillColor(sf::Color::Blue);
-    mazeSize.setPosition(BOARD_LEN, 330);
 }
 
 void Board::leftClick(sf::Vector2i pos) {
@@ -325,6 +378,9 @@ void Board::shiftRightClick(sf::Event &event) {
 }
 
 void Board::reset() {
+    pathLength = 0;
+    totalChecks = 0;
+
     finished = false;
     BFSstarted = false;
     GBFSstarted = false;
@@ -375,7 +431,7 @@ void Board::BreadthFirstSearchloop() {
                     createPath();
                     break;
                 }
-
+                totalChecks++;
                 BFSq.push(cell);
             }
         }
@@ -407,9 +463,15 @@ bool Board::isFinished() {
 }
 
 void Board::createPath() {
-    Cell* temp = finish->prev;
+    Cell* temp = finish;
     while (!temp->isStart) {
         temp->isPath = true;
+
+        if (isDiagonal(temp, temp->prev))
+            pathLength += sqrt(2);
+        else
+            pathLength += 1;
+
         temp = temp->prev;
     }
 }
@@ -441,6 +503,7 @@ void Board::DijkstraSearchLoop()
                 {
                     cell->prev = curr;
                     cell->dijkstraDistance = curr->dijkstraDistance + weight;
+                    totalChecks++;
                     DJKpq.emplace(curr->dijkstraDistance + weight, cell);
                 }
                 if (cell->isFinish)
@@ -477,7 +540,7 @@ void Board::GreedyBestFirstSearchLoop() {
                     createPath();
                     break;
                 }
-
+                totalChecks++;
                 GBFSpq.push(cell);
             }
         }
@@ -491,6 +554,9 @@ bool Board::diagonallyWalled(Board::Cell *first, Board::Cell *second) {
 }
 
 void Board::resetPath() {
+    pathLength = 0;
+    totalChecks = 0;
+
     finished = false;
     BFSstarted = false;
     DJKstarted= false;
@@ -518,33 +584,50 @@ void Board::resetPath() {
 void Board::AStarLoop() {
     if (!ASstarted)
     {
+        for (auto& row : cells) {
+            for (auto& cell : row) {
+                cell.setGBFSDistance(finish);
+            }
+        }
+
         ASstarted = true;
-        ASpq.push(start);
         start->dijkstraDistance = 0;
         start->setGBFSDistance(finish);
         start->visited = true;
         start->aStarVisited = true;
+        ASpq.push(start);
     }
     if (!ASpq.empty() and !finished)
     {
         Cell *curr = ASpq.top();
         ASpq.pop();
+
+        //while(curr->aStarVisited) {
+         //   curr = ASpq.top();
+         //   ASpq.pop();
+        //}
+
         curr->aStarVisited = true;
         for (auto &cell : curr->nearbyCells)
         {
             if (!cell->aStarVisited and !cell->isWall and !diagonallyWalled(curr, cell))
             {
-                cell->visited = true;
-                cell->setGBFSDistance(finish);
+
                 float weight = 1;
-                if(abs(cell->x - curr->x) == abs(cell->y - curr->y)){
+                if(isDiagonal(cell, curr)){
                     weight = sqrt(2);
                 }
                 if (cell->dijkstraDistance > curr->dijkstraDistance + weight)
                 {
                     cell->prev = curr;
                     cell->dijkstraDistance = curr->dijkstraDistance + weight;
-                    ASpq.emplace(cell);
+                    totalChecks++;
+
+                    if (!cell->visited) {
+                        cell->visited = true;
+                        ASpq.emplace(cell);
+                    }
+
                 }
 
                 if (cell->isFinish)
@@ -572,7 +655,7 @@ bool Board::CompareASdistance::operator()(Board::Cell *lhs, Board::Cell *rhs) {
 void Board::readMazeFile(){
     reset();
     std::string dimension = std::to_string(boardLength) + "x" + std::to_string(boardLength) + ".txt";
-    std::ifstream maze("/Users/andresbodero/Documents/Project3(DSA)/cmake-sfml-project/mazes/" + dimension);
+    std::ifstream maze("resources/mazes/" + dimension);
     int lines = 1 + boardLength * (rand() % 100);
     int x = 0; 
 
@@ -603,4 +686,28 @@ void Board::readMazeFile(){
         x = 0;
     }
     std::cout << "done" << std::endl;
+}
+
+void Board::increaseFramerate() {
+    framerateCycle++;
+    if (framerateCycle > 8)
+        framerateCycle = 0;
+    framerate.setString(" " + std::to_string(framerates[framerateCycle])+" fps");
+    if (framerateCycle == 8)
+        framerate.setString(" Unlimited fps");
+}
+
+void Board::decreaseFramerate() {
+    framerateCycle--;
+    if (framerateCycle < 0)
+        framerateCycle = 8;
+    framerate.setString(" " + std::to_string(framerates[framerateCycle])+" fps");
+    if (framerateCycle == 8)
+        framerate.setString(" Unlimited fps");
+}
+
+bool Board::isDiagonal(Board::Cell *first, Board::Cell *second) {
+    if (abs(first->x-second->x)==1 and abs(first->y-second->y)==1)
+        return true;
+    return false;
 }
