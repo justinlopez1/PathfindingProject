@@ -4,7 +4,7 @@
 
 #ifndef PATHFINDINGPROJECT_BOARD_H
 #define PATHFINDINGPROJECT_BOARD_H
-//
+
 #pragma once
 #include <vector>
 #include <iostream>
@@ -98,7 +98,6 @@ private:
 
 public:
     Board();
-    ~Board();
 
     void draw(sf::RenderWindow &window);
 
