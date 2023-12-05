@@ -8,13 +8,15 @@ Board::Cell::Cell(int x, int y, float sideLength) {
     this->x = x;
     this->y = y;
     this->dijkstraDistance = std::numeric_limits<int>::max();
+    GBFSdistance = 0;
+    prev = nullptr;
     isFinish = false;
     isStart = false;
     isWall = false;
     visited = false;
     isPath = false;
-    //std::cout << x << " " << y << " " << sideLength << std::endl;
-    tile.setPosition(x*sideLength, y*sideLength);
+
+    tile.setPosition((float)x*sideLength, (float)y*sideLength);
     tile.setSize(sf::Vector2f(sideLength, sideLength));
     tile.setFillColor(sf::Color::White);
 }
@@ -76,6 +78,7 @@ Board::Board() {
     this->boardLength = dimensions[0];
     cellSideLength = float(BOARD_LEN) / float(boardLength);
     finished = false;
+    solving = false;
     for (int i = 0; i < boardLength; i++) {
         std::vector<Cell> temp;
         cells.push_back(temp);
@@ -115,8 +118,6 @@ Board::Board() {
                 cells[i][j].nearbyCells.push_back(&cells[i-1][j-1]);
         }
     }
-
-
 
     font.loadFromFile("resources/font.ttf");
     sf::Text instructions1;
@@ -241,9 +242,8 @@ void Board::checkAlgorithm(){
         BreadthFirstSearchloop();
     if(algorithms[cycle] == "Dijkstra")
         DijkstraSearchLoop();
-    if(algorithms[cycle] == "A*"){
+    if(algorithms[cycle] == "A*")
         AStarLoop();
-    }
     if(algorithms[cycle] == "Greedy Best First Search")
         GreedyBestFirstSearchLoop();
     if (finished and solving) {

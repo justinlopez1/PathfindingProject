@@ -1,4 +1,3 @@
-#include "SFML/Graphics.hpp"
 #include "Board.h"
 
 void ProcessInputs(sf::RenderWindow &window, Board &board) {
