@@ -41,10 +41,10 @@ void ProcessInputs(sf::RenderWindow &window, Board &board) {
             if (event.key.code == sf::Keyboard::G){
                 board.readMazeFile();
             }
-            if (event.key.code == sf::Keyboard::K){
+            if (event.key.code == sf::Keyboard::Left){
                 board.changeDimensionsK();
             }
-            if (event.key.code == sf::Keyboard::L){
+            if (event.key.code == sf::Keyboard::Right){
                 board.changeDimensionsL();
             }
             if (event.key.code == sf::Keyboard::P) {
@@ -56,7 +56,7 @@ void ProcessInputs(sf::RenderWindow &window, Board &board) {
         }
     }
 }
-//
+
 int main() {
 
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Pathfinding");

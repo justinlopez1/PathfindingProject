@@ -64,7 +64,7 @@ class Board {
     Cell* start;
     Cell* finish;
     sf::Font font;
-    sf::Text instructions;
+    std::vector<sf::Text> instructions;
     sf::Text algorithm;
     sf::Text mazeSize;
     sf::Text framerate;

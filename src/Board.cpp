@@ -24,10 +24,10 @@ void Board::Cell::draw(sf::RenderWindow &window) {
         tile.setFillColor(sf::Color::Red);
     else if (isStart)
         tile.setFillColor(sf::Color::Green);
-    else if (isPath)
-        tile.setFillColor(sf::Color::Yellow);
     else if (isWall)
         tile.setFillColor(sf::Color::Black);
+    else if (isPath)
+        tile.setFillColor(sf::Color::Yellow);
     else if (visited)
         tile.setFillColor(sf::Color::Blue);
 
@@ -116,58 +116,84 @@ Board::Board() {
         }
     }
 
-    std::string ini = "Mouse Instruction\n"
-                      "Left: Place Wall\n"
-                      "Right: Erase Wall\n"
-                      "Shift+Left: Place Start\n"
-                      "Shift+Right: Place Finish\n\n"
-                      "Keyboard Instruction\n"
-                      "Enter: Reset Board\n"
-                      "r: Reset Path\n"
-                      "Down/Up Arrow: Change Algo\n"
-                      "k/l: Change Board Size\n"
-                      "o/p: Change Framerate\n"
-                      "g: Generate Random Maze\n";
+
 
     font.loadFromFile("resources/font.ttf");
-    instructions.setFont(font);
-    instructions.setString(ini);
-    instructions.setScale(.8, .8);
-    instructions.setFillColor(sf::Color::Blue);
-    instructions.setPosition(BOARD_LEN, 0);
+    sf::Text instructions1;
+    instructions1.setFont(font);
+    instructions1.setString("Mouse Instruction");
+    instructions1.setScale(.8, .8);
+    instructions1.setFillColor(sf::Color::Blue);
+    instructions1.setPosition(BOARD_LEN+15, 0);
+    instructions1.setStyle(sf::Text::Underlined);
+
+    sf::Text instructions2;
+    instructions2.setFont(font);
+    instructions2.setString(" Left: Place Wall\n"
+                            " Right: Erase Wall\n"
+                            " Shift+Left: Place Start\n"
+                            " Shift+Right: Place Finish\n");
+    instructions2.setScale(.8, .8);
+    instructions2.setFillColor(sf::Color::Blue);
+    instructions2.setPosition(BOARD_LEN, instructions1.getPosition().y+instructions1.getLocalBounds().height);
+
+    sf::Text instructions3;
+    instructions3.setFont(font);
+    instructions3.setString("Keyboard Instruction");
+    instructions3.setScale(.8, .8);
+    instructions3.setFillColor(sf::Color::Blue);
+    instructions3.setPosition(BOARD_LEN+15, instructions2.getPosition().y+instructions2.getLocalBounds().height);
+    instructions3.setStyle(sf::Text::Underlined);
+
+    sf::Text instructions4;
+    instructions4.setFont(font);
+    instructions4.setString(" Enter: Reset Board\n"
+                            " r: Reset Path\n"
+                            " Down/Up Arrow: Change Algo\n"
+                            " Left/Right Arrow: Change Board Size\n"
+                            " o/p: Change Framerate\n"
+                            " g: Generate Random Maze\n");
+    instructions4.setScale(.8, .8);
+    instructions4.setFillColor(sf::Color::Blue);
+    instructions4.setPosition(BOARD_LEN, instructions3.getPosition().y+instructions3.getLocalBounds().height);
+
+    instructions.push_back(instructions1);
+    instructions.push_back(instructions2);
+    instructions.push_back(instructions3);
+    instructions.push_back(instructions4);
 
     algorithm.setFont(font);
-    algorithm.setString("Current Algorithm:\n  " + algorithms[cycle]);
+    algorithm.setString(" Current Algorithm:\n  " + algorithms[cycle]);
     algorithm.setScale(.8, .8);
     algorithm.setFillColor(sf::Color::Blue);
     algorithm.setPosition(BOARD_LEN, BOARD_LEN-100);
 
     mazeSize.setFont(font);
-    mazeSize.setString("Current Size: " + std::to_string(dimensions[dimensionCycle]) + "x" + std::to_string(dimensions[dimensionCycle]));
+    mazeSize.setString(" Current Size: " + std::to_string(dimensions[dimensionCycle]) + "x" + std::to_string(dimensions[dimensionCycle]));
     mazeSize.setScale(.8, .8);
     mazeSize.setFillColor(sf::Color::Blue);
     mazeSize.setPosition(BOARD_LEN, BOARD_LEN-50);
 
     framerate.setFont(font);
-    framerate.setString(std::to_string(framerates[framerateCycle])+" fps");
+    framerate.setString(" " + std::to_string(framerates[framerateCycle])+" fps");
     framerate.setScale(.8, .8);
     framerate.setFillColor(sf::Color::Blue);
     framerate.setPosition(BOARD_LEN, BOARD_LEN-125);
 
     totalCheckstext.setFont(font);
-    totalCheckstext.setString("Total Checks: ");
+    totalCheckstext.setString(" Total Checks: ");
     totalCheckstext.setScale(.8, .8);
     totalCheckstext.setFillColor(sf::Color::Blue);
     totalCheckstext.setPosition(BOARD_LEN, BOARD_LEN-200);
 
     pathLengthtext.setFont(font);
-    pathLengthtext.setString("Path Length: ");
+    pathLengthtext.setString(" Path Length: ");
     pathLengthtext.setScale(.8, .8);
     pathLengthtext.setFillColor(sf::Color::Blue);
     pathLengthtext.setPosition(BOARD_LEN, BOARD_LEN-225);
 
     timeTakentext.setFont(font);
-    timeTakentext.setString("Time Taken: ");
+    timeTakentext.setString(" Time Taken: ");
     timeTakentext.setScale(.8, .8);
     timeTakentext.setFillColor(sf::Color::Blue);
     timeTakentext.setPosition(BOARD_LEN, BOARD_LEN-250);
@@ -187,19 +213,20 @@ void Board::draw(sf::RenderWindow &window) {
     for (auto& line : borders) {
         window.draw(line);
     }
-    window.draw(instructions);
+    for (auto& text : instructions)
+        window.draw(text);
     window.draw(algorithm);
     window.draw(mazeSize);
     window.draw(framerate);
     if (!finished) {
-        totalCheckstext.setString("Total Checks:");
-        timeTakentext.setString("Time Taken:");
-        pathLengthtext.setString("Path Length:");
+        totalCheckstext.setString(" Total Checks:");
+        timeTakentext.setString(" Time Taken:");
+        pathLengthtext.setString(" Path Length:");
     }
     else {
-        totalCheckstext.setString("Total Checks: "+std::to_string(totalChecks));
-        timeTakentext.setString("Time Taken: "+std::to_string(timeTaken.asSeconds()));
-        pathLengthtext.setString("Path Length: "+std::to_string(pathLength));
+        totalCheckstext.setString(" Total Checks: "+std::to_string(totalChecks));
+        timeTakentext.setString(" Time Taken: "+std::to_string(timeTaken.asSeconds()));
+        pathLengthtext.setString(" Path Length: "+std::to_string(pathLength));
     }
     window.draw(totalCheckstext);
     window.draw(timeTakentext);
@@ -229,13 +256,13 @@ void Board::downArrow() {
     cycle++;
     if (cycle == 4)
         cycle = 0;
-    algorithm.setString("Current Algorithm: \n  " + algorithms[cycle]);
+    algorithm.setString(" Current Algorithm: \n  " + algorithms[cycle]);
 }
 void Board::upArrow() {
      cycle--;
     if (cycle == -1)
         cycle = 3;
-    algorithm.setString("Current Algorithm: \n  " + algorithms[cycle]);
+    algorithm.setString(" Current Algorithm: \n  " + algorithms[cycle]);
 }
 
 void Board::changeDimensionsK(){
@@ -243,7 +270,7 @@ void Board::changeDimensionsK(){
     if (dimensionCycle == -1)
         dimensionCycle = 10;
     boardLength = dimensions[dimensionCycle];
-    mazeSize.setString("Current Size: " + std::to_string(boardLength) + "x" + std::to_string(boardLength));
+    mazeSize.setString(" Current Size: " + std::to_string(boardLength) + "x" + std::to_string(boardLength));
     resizeBoard();
 }
 void Board::changeDimensionsL(){
@@ -251,7 +278,7 @@ void Board::changeDimensionsL(){
     if (dimensionCycle == 11)
         dimensionCycle = 0;
     boardLength = dimensions[dimensionCycle];
-    mazeSize.setString("Current Size: " + std::to_string(boardLength) + "x" + std::to_string(boardLength));
+    mazeSize.setString(" Current Size: " + std::to_string(boardLength) + "x" + std::to_string(boardLength));
     resizeBoard();
 }
 
@@ -665,18 +692,18 @@ void Board::increaseFramerate() {
     framerateCycle++;
     if (framerateCycle > 8)
         framerateCycle = 0;
-    framerate.setString(std::to_string(framerates[framerateCycle])+" fps");
+    framerate.setString(" " + std::to_string(framerates[framerateCycle])+" fps");
     if (framerateCycle == 8)
-        framerate.setString("Unlimited fps");
+        framerate.setString(" Unlimited fps");
 }
 
 void Board::decreaseFramerate() {
     framerateCycle--;
     if (framerateCycle < 0)
         framerateCycle = 8;
-    framerate.setString(std::to_string(framerates[framerateCycle])+" fps");
+    framerate.setString(" " + std::to_string(framerates[framerateCycle])+" fps");
     if (framerateCycle == 8)
-        framerate.setString("Unlimited fps");
+        framerate.setString(" Unlimited fps");
 }
 
 bool Board::isDiagonal(Board::Cell *first, Board::Cell *second) {
